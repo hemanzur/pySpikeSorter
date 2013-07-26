@@ -4,6 +4,8 @@ pySpikeSorter
 A pure python Spike sorter.
 A(nother) spike sorting utility capable of helping in the analisis of extracelullar action potential recordings.
 
+Installation Instructions:
+--------------------------
 
 Requirements:
 -------------
@@ -15,7 +17,7 @@ Requirements:
 * Klustakwik
 * pytables
 
-In ubuntu you can do:
+In **ubuntu** you can do:
 
     sudo apt-get install python-numpy python-scipy python-tables python-guidata
 
