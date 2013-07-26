@@ -8,6 +8,7 @@ Requirements:
 * Numpy
 * Scipy
 * Matplotlib
+* PyQt4
 * Guidata
 * Klustakwik
 * pytables
