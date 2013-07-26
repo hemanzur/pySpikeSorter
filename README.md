@@ -11,8 +11,8 @@ Requirements:
 * Guidata
 * Klustakwik
 * pytables
-* 
-In ubuntu you can make:
+
+In ubuntu you can do:
 ```
 sudo apt-get install python-numpy python-scipy python-tables python-guidata
 ```
