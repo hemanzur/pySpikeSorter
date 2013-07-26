@@ -39,8 +39,8 @@ The h5file basic structure is as follows:
 * A group or folder called 'Spikes' (capital 'S')
 * Inside, one grou/folder named 'Chan_000', where the zeros are replaced by the channel number. Note that the script asumes there are three integers.
 * Inside each channel folder a:
-* * 'Waveforms' numpy array, with the shape (events, points)
-* * 'Unsorted': numpy array containing the indices of the unsorted events.
-* * 'isMultiunit': boolean
-* * 'TimeStamp': a numpy vector containing the timestamps (in milliseconds) of the neural events.
-* * 'isTrash': Boolean.
+    * 'Waveforms' numpy array, with the shape (events, points)
+    * 'Unsorted': numpy array containing the indices of the unsorted events.
+    * 'isMultiunit': boolean
+    * 'TimeStamp': a numpy vector containing the timestamps (in milliseconds) of the neural events.
+    * 'isTrash': Boolean.
