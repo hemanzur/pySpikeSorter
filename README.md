@@ -17,7 +17,7 @@ Requirements:
 * Klustakwik
 * pytables
 
-In **ubuntu** you can do:
+In __ubuntu__ you can do:
 
     sudo apt-get install python-numpy python-scipy python-tables python-guidata
 
