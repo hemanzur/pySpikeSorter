@@ -21,8 +21,9 @@ In Debian based linux distributions i.e.**ubuntu** you can do:
 
     sudo apt-get install python-numpy python-scipy python-tables python-guidata
 
-In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/)
-Under **MacOS** it is recommended to install the enthought package, which bundles all the requirements
+In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/).
+
+Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles all the requirements
 
 Tutorial:
 Video Tutorial
