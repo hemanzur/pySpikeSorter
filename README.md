@@ -17,7 +17,7 @@ Requirements:
 * Klustakwik
 * pytables
 
-In Debian based linux distributions i.e.**ubuntu** you can do:
+In Debian based linux distributions i.e. **ubuntu** you can do:
 
     sudo apt-get install python-numpy python-scipy python-tables python-guidata
 
