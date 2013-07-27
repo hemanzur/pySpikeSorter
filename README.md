@@ -27,6 +27,7 @@ Under **MacOS** it is recommended to install the [Enthought](https://www.enthoug
 
 There is no installation needed. Just download the files and from the command line run:
 
+    cd /folder/that/contains/the/files
     ipython -i pySpikeSorter.py
     
 Tutorial:
