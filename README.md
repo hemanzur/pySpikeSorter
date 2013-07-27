@@ -25,6 +25,10 @@ In **Windows** it is recomemnded to install a python bundle, for example [Python
 
 Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles all the requirements
 
+There is no installation needed. Just download the files and from the command line run:
+
+    ipython -i pySpikeSorter.py
+    
 Tutorial:
 Video Tutorial
 
