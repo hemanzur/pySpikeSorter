@@ -14,8 +14,9 @@ Requirements:
 * Matplotlib
 * PyQt4
 * Guidata
-* Klustakwik
+* traitsui
 * pytables
+* optional: Klustakwik
 
 In Debian based linux distributions i.e. **ubuntu** you can do:
 
