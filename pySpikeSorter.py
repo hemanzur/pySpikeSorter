@@ -29,16 +29,9 @@ sip.setapi('QVariant', 2)
 from PyQt4 import QtGui, QtCore
 import nsx
 
-# maya vi import
-from traits.api import HasTraits, Instance, on_trait_change
-from traitsui.api import View, Item
-from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
-
 from matplotlib import rc
 
-from matplotlib.lines import Line2D
 from matplotlib.mlab import PCA
-from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
 
 from matplotlib.path import Path
@@ -51,8 +44,12 @@ app = guidata.qapplication()
 import guidata.dataset.datatypes as dt
 import guidata.dataset.dataitems as di
 
+# extra widgets import
+import matplotlib_widgets
+import mayavi_widgets
+import helper_widgets
 
-readparams=ReadParams()
+from bin2h5 import bin2h5
 
 ########## UTILITY FUNCTIONS #######################################################
         
@@ -61,17 +58,12 @@ readparams=ReadParams()
 rc('xtick', labelsize=8)
 rc('ytick', labelsize=8)
 
-if sys.platform == 'linux2':
-    pth = os.environ['HOME']
-elif sys.platform == 'win32':
-    pth = 'C:\\'
-else:
-    pth = ''
-
-colormaps = [k for k in plt.cm.datad.keys() if not k.endswith('_r')]
-settings    = Settings()
-nevfilespth = NevFilesPth()
-autocorropts = AutocorrOpts()
+# create instance of imported widgets
+settings     = helper_widgets.Settings()
+nevfilespth  = helper_widgets.NevFilesPth()
+autocorropts = helper_widgets.AutocorrOpts()
+readparams   = helper_widgets.ReadParams()
+autoclust    = helper_widgets.AutoClustWidget()
     
 class pySpikeSorter(QtGui.QMainWindow):
 
@@ -460,13 +452,13 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         hlay = QtGui.QHBoxLayout()
         mergeUnitsBtn = QtGui.QPushButton('Merge Units')
-        self.MergeUnitsWidget = MergeUnitsWidget()
+        self.MergeUnitsWidget = helper_widgets.MergeUnitsWidget()
         self.MergeUnitsWidget.AcceptBtn.clicked.connect(self.MergeUnits_proc)
         mergeUnitsBtn.clicked.connect(self.CallMergeUnits_proc)
         hlay.addWidget(mergeUnitsBtn)
         
         moveUnitsBtn = QtGui.QPushButton('Move Units')
-        self.MoveUnitsWidget = MoveUnitsWidget()
+        self.MoveUnitsWidget = helper_widgets.MoveUnitsWidget()
         self.MoveUnitsWidget.AcceptBtn.clicked.connect(self.MoveUnits_proc)
         moveUnitsBtn.clicked.connect(self.CallMoveUnits_proc)
         hlay.addWidget(moveUnitsBtn)
@@ -515,9 +507,9 @@ class pySpikeSorter(QtGui.QMainWindow):
         self.MainFigTab.addTab(self.OverviewTab1['MainWidget'],'Channels Overview')
 
         # overview figure
-        self.OverviewTab1['Figure']  = MplWidget()
+        self.OverviewTab1['Figure']  = matplotlib_widgets.MplWidget()
         self.OverviewTab1['Figure'].figure.set_facecolor('k')
-        self.OverviewTab1['Toolbar'] = NavToolbar(self.OverviewTab1['Figure'], self.OverviewTab1['MainWidget'])
+        self.OverviewTab1['Toolbar'] = matplotlib_widgets.NavToolbar(self.OverviewTab1['Figure'], self.OverviewTab1['MainWidget'])
         self.OverviewTab1['Toolbar'].setIconSize(QtCore.QSize(15,15))
         vlay = QtGui.QVBoxLayout()
         vlay.addWidget(self.OverviewTab1['Figure'])
@@ -610,9 +602,9 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         # waveforms plot and toolbar
         hlay = QtGui.QHBoxLayout()
-        self.ChanTab['WavesFigure'] = MplWidget()
+        self.ChanTab['WavesFigure'] = matplotlib_widgets.MplWidget()
         self.ChanTab['WavesFigure'].figure.set_facecolor('k')
-        self.ChanTab['WaveToolbar'] = NavToolbar(self.ChanTab['WavesFigure'], self.ChanTab['MainWidget'], coordinates=False)
+        self.ChanTab['WaveToolbar'] = matplotlib_widgets.NavToolbar(self.ChanTab['WavesFigure'], self.ChanTab['MainWidget'], coordinates=False)
         self.ChanTab['WaveToolbar'].setIconSize(QtCore.QSize(15,15))
         self.ChanTab['WaveToolbar'].setOrientation(QtCore.Qt.Vertical)
         self.ChanTab['WaveToolbar'].setMaximumWidth(30)
@@ -645,7 +637,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         # configures the waveforms figure
         wavesfig = self.ChanTab['WavesFigure'].figure
         ax = wavesfig.add_subplot(111)
-        self.trimWaveformsRect = MyRectangleSelector(ax, self.TrimWaveforms_proc, drawtype='line', useblit=True)
+        self.trimWaveformsRect = matplotlib_widgets.MyRectangleSelector(ax, self.TrimWaveforms_proc, drawtype='line', useblit=True)
         self.trimWaveformsRect.set_active(False)
         ax.set_axis_bgcolor('k')
         ax.set_xticklabels([])
@@ -717,10 +709,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         vlay.addLayout(hlay)
 
         # Features figure and toolbar
-        self.ChanTab['FeaturesFig']    = MplWidget()
+        self.ChanTab['FeaturesFig']    = matplotlib_widgets.MplWidget()
         self.ChanTab['FeaturesFig'].figure.set_facecolor('k')
-        self.ChanTab['FeaturesFigNtb'] = NavToolbar(self.ChanTab['FeaturesFig'].figure.canvas,
-                                                    self.ChanTab['MainWidget'])
+        self.ChanTab['FeaturesFigNtb'] = matplotlib_widgets.NavToolbar(self.ChanTab['FeaturesFig'].figure.canvas,
+                                                            self.ChanTab['MainWidget'])
         self.ChanTab['FeaturesFigNtb'].setIconSize(QtCore.QSize(15,15))
         self.ChanTab['FeaturesFigNtb'].setMaximumHeight(30)
 
@@ -736,7 +728,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         ###### 3D TAB Widget  #######################################
 
-        self.Widget3d = MayaviQWidget()
+        self.Widget3d = mayavi_widgets.MayaviQWidget()
         tab.addTab(self.Widget3d,'3D')
         self.Fig3d = self.Widget3d.visualization.scene.mlab
 
@@ -744,7 +736,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         # add a figure adn axes
         self.TimeScroll = {}
-        self.TimeScroll['Figure']  = MplWidget()
+        self.TimeScroll['Figure']  = matplotlib_widgets.MplWidget()
         self.TimeScroll['Figure'].figure.set_facecolor('k')
         self.TimeScroll['DrawFigCID']  = self.TimeScroll['Figure'].figure.canvas.mpl_connect('draw_event', self.DrawScrollFig_Func)
         self.TimeScroll['Figure'].setMaximumHeight(QtGui.QApplication.desktop().availableGeometry().height()/6)
@@ -2448,8 +2440,8 @@ class pySpikeSorter(QtGui.QMainWindow):
             return
 
         # create a lasso instance
-        self.lasso = MyLasso(event.inaxes, (event.xdata, event.ydata),
-                             self.LassoCallback_AddUnit, color = 'gray', lw=1)
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
+                                     self.LassoCallback_AddUnit, color = 'gray', lw=1)
         self.ChanTab['FeaturesFig'].figure.canvas.widgetlock(self.lasso)
 
     ########################################################################################################
@@ -2467,8 +2459,8 @@ class pySpikeSorter(QtGui.QMainWindow):
                 del self.LassoCID
             return
         
-        self.lasso = MyLasso(event.inaxes, (event.xdata, event.ydata),
-                             self.LassoCallback_Keep, color = 'gray', lw=1)
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
+                                     self.LassoCallback_Keep, color = 'gray', lw=1)
         self.ChanTab['FeaturesFig'].figure.canvas.widgetlock(self.lasso)
 
     ########################################################################################################
@@ -2486,8 +2478,8 @@ class pySpikeSorter(QtGui.QMainWindow):
                 del self.LassoCID
             return
         
-        self.lasso = MyLasso(event.inaxes, (event.xdata, event.ydata),
-                             self.LassoCallback_AddRegion, color = 'gray', lw=1)
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
+                                     self.LassoCallback_AddRegion, color = 'gray', lw=1)
         self.ChanTab['FeaturesFig'].figure.canvas.widgetlock(self.lasso)
 
     ########################################################################################################
@@ -2505,8 +2497,8 @@ class pySpikeSorter(QtGui.QMainWindow):
                 del self.LassoCID
             return
        
-        self.lasso = MyLasso(event.inaxes, (event.xdata, event.ydata),
-                             self.LassoCallback_RemoveRegion, color = 'gray', lw=1)
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
+                                     self.LassoCallback_RemoveRegion, color = 'gray', lw=1)
         self.ChanTab['FeaturesFig'].figure.canvas.widgetlock(self.lasso)
         
     ########################################################################################################
@@ -2957,10 +2949,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         vlay.addLayout(hlay)
 
         # add the figure widget
-        self.ChanTab['UnitFigures'][unitName] = MplWidget()
+        self.ChanTab['UnitFigures'][unitName] = matplotlib_widgets.MplWidget()
         self.ChanTab['UnitFigures'][unitName].setObjectName(unitName) # set the name of the object
         self.ChanTab['UnitFigures'][unitName].figure.set_facecolor('k')
-        n = NavToolbar(self.ChanTab['UnitFigures'][unitName].figure.canvas, widget, coordinates = False)
+        n = matplotlib_widgets.NavToolbar(self.ChanTab['UnitFigures'][unitName].figure.canvas, widget, coordinates = False)
         n.setIconSize(QtCore.QSize(12,12))
         n.setOrientation(QtCore.Qt.Vertical)
 

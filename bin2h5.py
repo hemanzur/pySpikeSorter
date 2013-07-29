@@ -1,6 +1,10 @@
+from PyQt4 import QtGui
+import tables, os
+from glob import glob
+
 ##########################################################################################
 
-def bin2h5(pth=None):
+def bin2h5(pth = None):
     '''Helper function to transform binary files to an h5 file.'''
 
     # if not path provided open a dialog to select one

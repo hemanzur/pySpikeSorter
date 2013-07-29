@@ -1,6 +1,8 @@
 from matplotlib.widgets import Widget, Lasso, RectangleSelector
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavToolbar
+from matplotlib.lines import Line2D
 from PyQt4 import QtGui, QtCore
 
 ################## MATPLOTLIB WIDGET TO EMBED IN QT ######################
