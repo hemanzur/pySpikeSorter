@@ -14,7 +14,9 @@ Requirements:
 * Matplotlib
 * PyQt4
 * Guidata
+* traits
 * traitsui
+* mayavi
 * pytables
 * optional: Klustakwik
 
