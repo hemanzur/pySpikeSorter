@@ -1,5 +1,5 @@
 from PyQt4 import QtGui
-import tables, os
+import tables, os, nev, pickle
 from glob import glob
 
 ##########################################################################################
@@ -135,3 +135,28 @@ def bin2h5(pth = None):
     
     # close the h5file
     h5file.close()
+
+##########################################################################################
+    
+def ext_fragments(filename=None, outdir=None):
+
+    fid = open(filename, 'rb')
+    bas_header = nev.read_basic_header(fid)
+    ext_header = nev.read_extended_header(fid, bas_header)
+
+    fname = os.path.split(filename)[1]
+    outdir = os.path.join(outdir,fname[0:fname.find('.')])
+
+    # create a directory if it doesn't exists
+    if not os.path.isdir(outdir): os.mkdir(outdir)
+    headers = open(os.path.join(outdir,'headers.p'),'wb')
+    pickle.dump([bas_header, ext_header], headers)
+    headers.close()
+    nev.fragment(fid,
+                 bas_header,
+                 ext_header,
+                 channel_list = np.arange(1,65),
+                 frag_dir = outdir,
+                 ignore_spike_sorting = True)
+    fid.close()
+    return outdir

@@ -20,17 +20,14 @@ from glob import glob
 import numpy as np
 from m_Spike_Utils import autocorr, fftConvolve
 
-# setup to embed mavayi in qt
 os.environ['ETS_TOOLKIT'] = 'qt4'
 import sip
 sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
 from PyQt4 import QtGui, QtCore
-import nsx
 
 from matplotlib import rc
-
 from matplotlib.mlab import PCA
 from matplotlib import pyplot as plt
 
@@ -38,18 +35,15 @@ from matplotlib.path import Path
 from scipy.spatial import cKDTree
 import datetime
 import guidata
-import pdb
 
 app = guidata.qapplication()
 import guidata.dataset.datatypes as dt
 import guidata.dataset.dataitems as di
 
 # extra widgets import
-import matplotlib_widgets
 import mayavi_widgets
+import matplotlib_widgets
 import helper_widgets
-
-from bin2h5 import bin2h5
 
 ########## UTILITY FUNCTIONS #######################################################
         
@@ -60,9 +54,7 @@ rc('ytick', labelsize=8)
 
 # create instance of imported widgets
 settings     = helper_widgets.Settings()
-nevfilespth  = helper_widgets.NevFilesPth()
 autocorropts = helper_widgets.AutocorrOpts()
-readparams   = helper_widgets.ReadParams()
 autoclust    = helper_widgets.AutoClustWidget()
     
 class pySpikeSorter(QtGui.QMainWindow):
@@ -140,6 +132,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         
         btn = QtGui.QPushButton('Plot Overview')
+	btn.setStyleSheet('QPushButton{background-color: rgba(0,190,0)}')
         btn.clicked.connect(self.LoadH5File)
         vlay.addWidget(btn)
 
@@ -196,29 +189,31 @@ class pySpikeSorter(QtGui.QMainWindow):
         grp = QtGui.QGroupBox('General Tools', ToolsTab1)
         glay = QtGui.QGridLayout()
         
+	'''
         convertFileBtn = QtGui.QPushButton('Convert File')
         convertFileBtn.clicked.connect(self.ConvertNevFile)
         glay.addWidget(convertFileBtn, 0,0)
 
         bin2H5Btn = QtGui.QPushButton('Bin2H5')
-        bin2H5Btn.clicked.connect(bin2h5)
+        bin2H5Btn.clicked.connect(bin2h5.bin2h5)
         glay.addWidget(bin2H5Btn, 0, 1)
-
+	'''	
+	
         setSettigsBtn = QtGui.QPushButton('Settings')
         setSettigsBtn.clicked.connect(self.Settings)
-        glay.addWidget(setSettigsBtn, 1, 0)
+        glay.addWidget(setSettigsBtn, 0, 0)
 
         aboutBtn = QtGui.QPushButton('About')
         aboutBtn.clicked.connect(self.About)
-        glay.addWidget(aboutBtn, 1, 1)
+        glay.addWidget(aboutBtn, 0, 1)
 
         closeH5FileBtn = QtGui.QPushButton('Close H5 File')
         closeH5FileBtn.clicked.connect(self.CloseFile)
-        glay.addWidget(closeH5FileBtn, 2, 0)
+        glay.addWidget(closeH5FileBtn, 1, 0)
         
         exitBtn = QtGui.QPushButton('Exit')
         exitBtn.clicked.connect(self.closeEvent)
-        glay.addWidget(exitBtn, 2, 1)
+        glay.addWidget(exitBtn, 1, 1)
 
         grp.setLayout(glay)
         toolslay.addWidget(grp)
@@ -1506,18 +1501,6 @@ class pySpikeSorter(QtGui.QMainWindow):
             self.LogTextBrowser.setText(log)
 
     ########################################################################################################
-        
-    def ConvertNevFile(self):
-        ''' Calls the functions that extracts the fragments from a *.nev file and then transforms them
-        into an h5file'''
-
-        if nevfilespth.edit()==1:
-            # extract fragments
-            outdir = ext_fragments(filename = nevfilespth.filename, outdir = nevfilespth.outdir)
-            # run the conversion from binary to h5 format
-            bin2h5(outdir)
-
-    ########################################################################################################
 
     def CloseFile(self):
         ''' close the h5 file'''
@@ -1564,7 +1547,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         
     def NearestPoint(self, event):
         ''' when right button clicked over the features window, calculates the closest
-        point and plots its correcponding waveform'''
+        point and plots its corresponding waveform'''
         
         if event.button==3 and event.inaxes and self.ChanTab['FeaturesFigNtb'].mode=='':
             featuresax = self.ChanTab['FeaturesFig'].figure.axes[0]
@@ -1611,9 +1594,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         # obtain labels and return if are the same
         xlabel = self.XPlot.currentText()
         ylabel = self.YPlot.currentText()
-        if xlabel==ylabel: return
-
-        #pdb.set_trace()
+        if xlabel == ylabel: return
         
         curchan = int(self.ChanSelector.currentText())
         
@@ -2183,7 +2164,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         
         # clean axes No2 and plot the 2d histogram
         ax2.cla()
-        ax2.pcolor(xd, yd, h.transpose(), cmap =  colormaps[settings.DensityCM])
+        ax2.pcolor(xd, yd, h.transpose(), cmap =  helper_widgets.colormaps[settings.DensityCM])
 
         # set axis limits
         ax2.set_xlim(xlim)
@@ -3074,8 +3055,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         ##### PLOT AUTOCORRELATION #####
         
         ts = self.CurTs[p]
-        ts = ts[0:1000]
-        ac, x = autocorr(ts, Win = [0,10000], binSize = 1, mode = 'fft', Range = [-150, 150])
+        if ts.size > 1000: ts = ts[0:1000]
+            
+        ac, x = autocorr(ts, binSize = 10, Win = [0,10000],
+                         mode = 'fft', Range = [-150, 150])
         ax2.plot(x, ac, color = self.UnitColors[unitNo], lw = 2)
         ax2.set_xlim(-200, 200)
         ax2.tick_params(color = [.5, .5, .5], labelcolor=[.5, .5, .5])
