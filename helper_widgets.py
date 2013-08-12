@@ -1,11 +1,9 @@
 from PyQt4 import QtGui, QtCore
-import guidata
+import guidata, os
 app = guidata.qapplication()
 import guidata.dataset.datatypes as dt
 import guidata.dataset.dataitems as di
-from matplotlib import pyplot as plt
-
-colormaps = [k for k in plt.cm.datad.keys() if not k.endswith('_r')]
+from matplotlib.pyplot import cm
 
 ########## MERGE UNITS WIDGET #######################################################
 
@@ -204,7 +202,13 @@ def KlustaKwik_call(data, minClust = 2, maxClust = 5):
 ###############################################################################
         
 class Settings(dt.DataSet):
-    WorkingDir   = di.DirectoryItem('Select a Working Dir')
+    
+    def chDir(self, item, value):
+        self.FiguresDir = os.path.split(value)[0]+os.path.sep
+
+    colormaps = [k for k in cm.datad.keys() if not k.endswith('_r')]
+    
+    WorkingDir   = di.DirectoryItem('Select a Working Dir').set_prop("display", callback=chDir)
     FiguresDir   = di.DirectoryItem('Path to save images')
     Figurescolor = di.ColorItem('Fig color', default='black')
     AxesColor    = di.ColorItem('Axes color', default='gray').set_pos(col=1)
@@ -214,21 +218,10 @@ class Settings(dt.DataSet):
                                  default = colormaps.index('gist_heat')).set_pos(col=1)
 
 ###############################################################################
-                                 
-class NevFilesPth(dt.DataSet):
-    filename = di.FileOpenItem ('Select a NEV files', formats=['nev'])
-    outdir   = di.DirectoryItem('Select a dir to output the files')
-
-###############################################################################
     
 class AutocorrOpts(dt.DataSet):
-    Mode        = di.ChoiceItem('Mode', ['ephys','fft','time'])
-    BinSize     = di.IntItem('BinSize', default = 1).set_pos(col=1)
-    Win0         = di.IntItem('Win 0', default = -150)
-    Win1         = di.IntItem('Win 1', default = 150).set_pos(col=1)
+    Mode    = di.ChoiceItem('Mode', ['ephys','fft','time'])
+    BinSize = di.IntItem('BinSize', default = 1).set_pos(col=1)
+    Win0    = di.IntItem('Win 0', default = -150)
+    Win1    = di.IntItem('Win 1', default = 150).set_pos(col=1)
 
-###############################################################################
-    
-class ReadParams(dt.DataSet):
-    filename = di.FileOpenItem('NEV file', formats=['nev'])
-    outdir   = di.DirectoryItem('Output Dir')

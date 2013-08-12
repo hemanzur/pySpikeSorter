@@ -2267,7 +2267,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         # get the y value of nearest integer x:
         x = np.array([x1, x2])
         x.sort()
-        xData = range(kk.WfSize)
+        xData = range(self.WfSize)
         indx1 = np.flatnonzero(xData > x[0]).min()
         indx2 = np.flatnonzero(xData < x[1]).max()
         y = np.array([m*xData[k]+n for k in range(indx1, indx2)])
