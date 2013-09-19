@@ -1,11 +1,12 @@
 pySpikeSorter
 =============
 
-A pure python Spike sorter.
-A(nother) spike sorting utility capable of helping in the analisis of extracelullar action potential recordings.
-
-Installation Instructions:
---------------------------
+* A(nother) spike sorting utility capable of helping in the analisis of extracelullar action potential recordings.
+* It is inspired by some of the features of the offline sorter software from plexon.
+* It is intended to be a completely "Manual" solution for spike sorting (old school neurophysiologists don't like automated stuf,
+ although there is some work to provide and/or interface with automatic clustering algorithms.
+* It is far from being complete, but at this moment it is functional.
+* I'm not a programmer, so I think there are lots of things that can be improved, that is why any comments aiming at improving it are welcome.
 
 Requirements:
 -------------
@@ -19,6 +20,9 @@ Requirements:
 * mayavi
 * pytables
 * optional: Klustakwik
+
+Installation Instructions:
+--------------------------
 
 In Debian based linux distributions i.e. **ubuntu** you can do:
 
@@ -43,6 +47,12 @@ Notes:
 
 
 Tutorial:
+---------
+* A "test.h5" file is provided, which can be loaded in the appplication clicking on the green button.
+* It should display an overview of the channels
+* By clicking a particular channel it gets selected. Clicking the "Plot Chan" button plots the data in a specific Tab.
+* Under that tab there are aeveral analisys and tools that can be used to sort the data.
+
 Video Tutorial in progress
 
 H5File Definition:
