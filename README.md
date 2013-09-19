@@ -33,9 +33,9 @@ There is no installation needed. Just download the files and from the command li
     cd /folder/that/contains/the/files
     ipython -i pySpikeSorter.py
 
-Notes:  
-*It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.  
-*If you are going to use ipython, please make sure that it doesn't load any PyQt4 library in advance, for example, calling:
+Notes:
+* It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.  
+* If you are going to use ipython, please make sure that it doesn't load any PyQt4 library in advance, for example, calling:
 
     ipython --pylab=qt -ipySpikeSorter.py
 
