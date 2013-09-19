@@ -23,6 +23,7 @@ import matplotlib_widgets
 import helper_widgets
 
 from m_Spike_Utils import autocorr
+
 from PyQt4 import QtGui, QtCore
 
 from matplotlib import rc

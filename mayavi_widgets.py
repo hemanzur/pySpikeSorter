@@ -8,11 +8,13 @@ sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
 # then import PyQt4
+
 from PyQt4 import QtGui
 
 from traits.api import HasTraits, Instance, on_trait_change
 from traitsui.api import View, Item
 from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
+
 
 ################################################################################
 #The actual visualization class
