@@ -7,7 +7,9 @@
 * It is far from being complete, but at this moment it is functional.
 * I'm not a programmer, so I think there are lots of things that can be improved, that is why any comments aiming at improving it are welcome.
 
-##Requirements:
+##Installation Instructions:  
+
+###Requirements:
 * Numpy
 * Scipy
 * Matplotlib
@@ -19,9 +21,7 @@
 * pytables
 * optional: Klustakwik
 
-##Installation Instructions:  
-
-The basic requirement is to have a python installation.
+To meet all the requirements is important to have a working python installation.
 
 In Debian based linux distributions i.e. **ubuntu** you can do:
 
@@ -36,14 +36,16 @@ If you do not want to install enthought, there are guides that can be used to su
 * [link1](http://powernap.github.io/blog/2012/08/20/install-python-together-with-vtk-using-homebrew-for-mountain-lion/)
 * [link2](http://docs.python-guide.org/en/latest/starting/install/osx/)
 
-For the There is no installation needed. Just download the files and from the command line run:
+###Running pySpikeSorter:
+
+There is no installation needed. Just download the files to a known location, and from the command line run:
 
 ```
 cd /folder/that/contains/the/files
 ipython -i pySpikeSorter.py
 ```
 
-###Notes:
+####Notes:
 * It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.  
 * If you are going to use ipython, please make sure that it doesn't load any PyQt4 library in advance, for example, calling:
 
@@ -51,7 +53,7 @@ ipython -i pySpikeSorter.py
 ipython --pylab=qt -i pySpikeSorter.py
 ```
 
-will not work because in order to use MayaVi for the 3d visualizatons, there are some tweaks needed to be made before loading PyQt4
+will not work because in order to use MayaVi (3d visualizatons), there are some tweaks needed to be made before loading PyQt4
 
 
 ##Tutorial:
