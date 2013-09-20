@@ -47,13 +47,13 @@ ipython -i pySpikeSorter.py
 
 ####Notes:
 * It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.  
-* If you are going to use ipython, please make sure that it doesn't load any PyQt4 library in advance, for example, calling:
+* If you are going to use ipython, please make sure that it doesn't load any PyQt4 library before loading pySpikeSorter, for example, calling:
 
 ```
 ipython --pylab=qt -i pySpikeSorter.py
 ```
 
-will not work because in order to use MayaVi (3d visualizatons), there are some tweaks needed to be made before loading PyQt4
+will not work because in order to use MayaVi (3d visualizatons), there are some tweaks needed to be made before loading PyQt4.
 
 
 ##Tutorial:
