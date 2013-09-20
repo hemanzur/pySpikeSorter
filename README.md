@@ -61,7 +61,8 @@ will not work because in order to use MayaVi (3d visualizatons), there are some 
 * By clicking a particular channel it gets selected. Clicking the "Plot Chan" button plots the data in a specific Tab.
 * Under that tab there are aeveral analisys and tools that can be used to sort the data.
 
-Video Tutorial: in progress ...
+###Video Tutorial:
+in progress ...
 
 ##H5File Definition:
 pySpikeSorter allows to sort spike events saved in an H5File.
