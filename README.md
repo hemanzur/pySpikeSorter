@@ -70,7 +70,7 @@ The package [Neo](http://pythonhosted.org/neo/), makes possible to read data in 
 The excellent package [Pytables](http://www.pytables.org/moin) provides a convenient way to create and manipulate these files.
 
 To facilitate the process, a sample h5file with the basic structure is provided. You can examine the internal structure of the files
-using the viTables application.
+using the [viTables](http://vitables.org/) application.
 The h5file basic structure is as follows:
 * A group or folder called 'Spikes' (capital 'S')
 * Inside, one grou/folder named 'Chan_000', where the zeros are replaced by the channel number. Note that the script asumes there are three integers.
