@@ -31,7 +31,10 @@ sudo apt-get install python-numpy python-scipy python-tables python-guidata pyth
 
 In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/).
 
-Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles all the requirements
+Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles most of the requirements.
+If you do not want to install enthought, there are guides that can be used to succesfully install python in MAC:  
+* [link1](http://powernap.github.io/blog/2012/08/20/install-python-together-with-vtk-using-homebrew-for-mountain-lion/)
+* [link2](http://docs.python-guide.org/en/latest/starting/install/osx/)
 
 For the There is no installation needed. Just download the files and from the command line run:
 
@@ -45,7 +48,7 @@ ipython -i pySpikeSorter.py
 * If you are going to use ipython, please make sure that it doesn't load any PyQt4 library in advance, for example, calling:
 
 ```
-ipython --pylab=qt -ipySpikeSorter.py
+ipython --pylab=qt -i pySpikeSorter.py
 ```
 
 will not work because in order to use MayaVi for the 3d visualizatons, there are some tweaks needed to be made before loading PyQt4
