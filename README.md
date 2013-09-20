@@ -1,5 +1,4 @@
-pySpikeSorter
-=============
+#pySpikeSorter
 
 * A(nother) spike sorting utility capable of helping in the analisis of extracelullar action potential recordings.
 * It is inspired by some of the features of the offline sorter software from plexon.
@@ -8,8 +7,7 @@ pySpikeSorter
 * It is far from being complete, but at this moment it is functional.
 * I'm not a programmer, so I think there are lots of things that can be improved, that is why any comments aiming at improving it are welcome.
 
-Requirements:
--------------
+##Requirements:
 * Numpy
 * Scipy
 * Matplotlib
@@ -21,43 +19,47 @@ Requirements:
 * pytables
 * optional: Klustakwik
 
-Installation Instructions:
---------------------------
+##Installation Instructions:  
+
+The basic requirement is to have a python installation.
 
 In Debian based linux distributions i.e. **ubuntu** you can do:
 
-    sudo apt-get install python-numpy python-scipy python-tables python-guidata
+```
+sudo apt-get install python-numpy python-scipy python-tables python-guidata python-matplotlib python-traits python-traitsui mavayi2
+```
 
 In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/).
 
 Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles all the requirements
 
-There is no installation needed. Just download the files and from the command line run:
+For the There is no installation needed. Just download the files and from the command line run:
 
-    cd /folder/that/contains/the/files
-    ipython -i pySpikeSorter.py
+```
+cd /folder/that/contains/the/files
+ipython -i pySpikeSorter.py
+```
 
-Notes:
-------
+###Notes:
 * It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.  
 * If you are going to use ipython, please make sure that it doesn't load any PyQt4 library in advance, for example, calling:
-  
-    ipython --pylab=qt -ipySpikeSorter.py
 
-  will not work because in order to use MayaVi for the 3d visualizatons, there are some tweaks needed to be made before loading PyQt4
+```
+ipython --pylab=qt -ipySpikeSorter.py
+```
+
+will not work because in order to use MayaVi for the 3d visualizatons, there are some tweaks needed to be made before loading PyQt4
 
 
-Tutorial:
----------
+##Tutorial:
 * A "test.h5" file is provided, which can be loaded in the appplication clicking on the green button.
 * It should display an overview of the channels
 * By clicking a particular channel it gets selected. Clicking the "Plot Chan" button plots the data in a specific Tab.
 * Under that tab there are aeveral analisys and tools that can be used to sort the data.
 
-Video Tutorial in progress
+Video Tutorial: in progress ...
 
-H5File Definition:
-------------------
+##H5File Definition:
 pySpikeSorter allows to sort spike events saved in an H5File.
 The package [Neo](http://pythonhosted.org/neo/), makes possible to read data in various formats and transform those into an h5file.
 The excellent package [Pytables](http://www.pytables.org/moin) provides a convenient way to create and manipulate these files.
