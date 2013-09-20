@@ -32,9 +32,8 @@ sudo apt-get install python-numpy python-scipy python-tables python-guidata pyth
 In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/).
 
 Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles most of the requirements.
-If you do not want to install enthought, there are guides that can be used to succesfully install python in MAC:  
-* [link1](http://powernap.github.io/blog/2012/08/20/install-python-together-with-vtk-using-homebrew-for-mountain-lion/)
-* [link2](http://docs.python-guide.org/en/latest/starting/install/osx/)
+If you do not want to install enthought, there are guides that can be used to succesfully install python in MAC: [link1](http://powernap.github.io/blog/2012/08/20/install-python-together-with-vtk-using-homebrew-for-mountain-lion/)
+, [link2](http://docs.python-guide.org/en/latest/starting/install/osx/)
 
 ###Running pySpikeSorter:
 
