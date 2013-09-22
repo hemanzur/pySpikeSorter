@@ -22,8 +22,6 @@ import mayavi_widgets
 import matplotlib_widgets
 import helper_widgets
 
-from m_Spike_Utils import autocorr
-
 from PyQt4 import QtGui, QtCore
 
 from matplotlib import rc
@@ -35,7 +33,48 @@ from scipy.spatial import cKDTree
 import datetime
 
 ########## UTILITY FUNCTIONS #######################################################
+
+def autocorr(TimeStamp, binSize = 20, Win = [0,10000], mode = 'time', Range = [-200, 200]):
+
+    if not np.any(TimeStamp): return
+    
+    Win = np.array(Win)
+    TimeStamp = np.array(TimeStamp)
+    TimeStamp = TimeStamp - TimeStamp[0]
+    TS = TimeStamp[(TimeStamp>=Win[0]) & (TimeStamp<Win[1])]
+
+    if TS.size > 1000:
+        TimeStamp = TS
+
+    binSize = int(binSize)
+    nBins = TimeStamp[-1] / binSize
+    train = np.zeros(nBins+1, dtype = np.int16)
+    for k in np.floor(TimeStamp/binSize).astype('int'):
+        train[k] = train[k] + 1
+    
+    if mode == 'time':
+        ac = np.correlate(train, train, mode='same')
+        x  = np.linspace(-TimeStamp[-1]/2, TimeStamp[-1]/2, ac.size)
         
+    elif mode == 'ephys':
+        tmp = np.array([])
+        for k in TimeStamp:
+            t = TimeStamp - k
+            t = t[ (t>Range[0]) & (t<Range[1]) ]
+            tmp = np.append(tmp, t)
+        ac, x = np.histogram(tmp, bins = int(np.diff(Range)/binSize) )
+        x = x[1:]
+        ac[np.flatnonzero(x==0)] = 0
+        
+    elif mode == 'fft':
+        s  = np.fft.fft(train)
+        ac = np.abs( np.fft.ifft( s * np.conjugate(s) ) )
+        #ac = ac/(train.size/((Win[1]-Win[0])/1000))
+        ac = np.concatenate( [ ac[ac.size/2:], ac[0:ac.size/2] ] )
+        x  = np.linspace(-TimeStamp[-1]/2, TimeStamp[-1]/2, ac.size)
+    
+    return ac, x
+    
 ## Spike Sorter Main GUI Window
 
 rc('xtick', labelsize=8)
@@ -547,10 +586,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         ##### CHANNEL TAB #####
 
         self.ChanTab = {}
-        curfigtab = self.MainFigTab.currentIndex()-1
+        #curfigtab = self.MainFigTab.currentIndex()-1
         self.ChanTab['MainWidget'] = QtGui.QWidget()
         self.MainFigTab.addTab(self.ChanTab['MainWidget'],'Channel Tab')
-        splitter = QtGui.QSplitter(QtCore.Qt.Horizontal, self.ChanTab['MainWidget'])
+        #splitter = QtGui.QSplitter(QtCore.Qt.Horizontal, self.ChanTab['MainWidget'])
 
         mainHLay = QtGui.QHBoxLayout()
 
@@ -852,7 +891,7 @@ class pySpikeSorter(QtGui.QMainWindow):
     def SetWfPlotLim_proc(self):
         sender = self.sender()
         ax = self.ChanTab['WavesFigure'].figure.axes[0]
-        curlim = ax.get_ylim()
+        #curlim = ax.get_ylim()
         lim = sender.value()           
         ax.set_ylim(-lim, lim)
         self.ChanTab['WavesFigure'].figure.canvas.draw()
