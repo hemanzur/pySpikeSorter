@@ -74,6 +74,44 @@ def autocorr(TimeStamp, binSize = 20, Win = [0,10000], mode = 'time', Range = [-
         x  = np.linspace(-TimeStamp[-1]/2, TimeStamp[-1]/2, ac.size)
     
     return ac, x
+
+##########################################################################################
+            
+def KlustaKwik_call(data, minClust = 2, maxClust = 5):
+    ''' data must be an array of observations x dimensions'''
+    
+    # create a text file with the data. The first line must be the
+    # number of dimensions of the data
+    f = open('data.fet.1', 'w')
+    f.write('%d\n' % data.shape[1])
+    for k in data:
+        for j in k:
+            f.write('%f ' % j)
+        f.write('\n')
+    f.close()
+    
+    # call klustakwick with the data 
+    os.system('KlustaKwik data 1 -MinClusters %d -MaxClusters %d' % (minClust, maxClust))
+
+    # read the results
+    f = open('data.clu.1','r')
+    clusterData = f.readlines()
+    f.close()
+    clusterData = [int(re.search('[0-9]{1,2}', k).group()) for k in clusterData]
+
+    # the first line is the number of clusters
+    nClusters = clusterData[0]
+    clusterData.pop(0)
+    clusterData = np.array(clusterData)
+
+    # create an array with the indices of each cluster
+    clustIndx = []
+    for k in range(1, nClusters+1):
+        clustIndx.append(np.flatnonzero(clusterData==k))
+
+    return clustIndx
+
+##########################################################################################
     
 ## Spike Sorter Main GUI Window
 
@@ -1102,7 +1140,7 @@ class pySpikeSorter(QtGui.QMainWindow):
                 
         # get the waveform size (number of points). X is for fast plotting
         self.WfSize = self.h5file.root.Header.WaveformSize.read()
-        x = range(self.WfSize)
+        #x = range(self.WfSize)
         
         # add items to the channel selector in the toolbar
         self.ChanSelector.clear()
@@ -1310,9 +1348,9 @@ class pySpikeSorter(QtGui.QMainWindow):
         
         # load waveforms for a specific channel
         self.CurChan = int(self.ChanSelector.currentText())
-        nspikes = self.NSpikesSlider.value()
-        self.CurNodeName = '/Spikes/Chan_%03d' % self.CurChan
-        self.CurNode     = self.h5file.getNode(self.CurNodeName)
+        #nspikes = self.NSpikesSlider.value()
+        self.CurNodeName  = '/Spikes/Chan_%03d' % self.CurChan
+        self.CurNode      = self.h5file.getNode(self.CurNodeName)
         self.CurWaveforms = self.CurNode.Waveforms.read()
         self.CurTs        = self.CurNode.TimeStamp.read()
         self.TimeScroll['HScroll'].setMaximum(int(self.CurTs[-1]))
@@ -1631,7 +1669,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         What2Plot = str(self.What2Plot.currentText()) # string containing what to plot
         self.CurNodeName = '/Spikes/Chan_%03d' % curchan
-        unitNodes = [k for k in self.h5file.listNodes(self.CurNodeName) if re.search('Unit[0-9]{2}', k._v_name)]
+        #unitNodes = [k for k in self.h5file.listNodes(self.CurNodeName) if re.search('Unit[0-9]{2}', k._v_name)]
         
 
         if What2Plot in ['All Waveforms', 'Sorted']:
@@ -1737,7 +1775,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         naxes = len(self.ChanTab['FeaturesFig'].figure.axes)
 
-        nspikes = self.NSpikesSlider.value()
+        #nspikes = self.NSpikesSlider.value()
 
         title = '%s: %s vs %s' % (What2Plot, xlabel, ylabel)
         # obtain the axis limits if we are plotting the same variables
@@ -1780,7 +1818,7 @@ class pySpikeSorter(QtGui.QMainWindow):
             ax2.set_axis_bgcolor('k')
             # create and plot a 2d histogram
             
-            
+        
         # setup the axes
         ax1.set_title(title, fontdict={'color':'w'})
         ax1.tick_params(color = [.5, .5, .5])
@@ -2069,8 +2107,8 @@ class pySpikeSorter(QtGui.QMainWindow):
         else:
             # obtain axes and first axes limits
             ax1 = self.ChanTab['FeaturesFig'].figure.axes[0]
-            xlim = ax1.get_xlim()
-            ylim = ax1.get_ylim()
+            #xlim = ax1.get_xlim()
+            #ylim = ax1.get_ylim()
             
             # search for the unsorted or the units plots to obatin data
             xpts = []; ypts = []
@@ -2220,7 +2258,7 @@ class pySpikeSorter(QtGui.QMainWindow):
                 data = k.get_data()
                 xpts.extend(data[0])
                 ypts.extend(data[1])
-        xypoints = np.array([xpts,ypts]).transpose()
+        #xypoints = np.array([xpts,ypts]).transpose()
         # check wich points are inside the axes
         verts = ax.viewLim.corners()
         verts[2] = ax.viewLim.corners()[3]
@@ -2257,7 +2295,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         ax.legend(fancybox=True, mode='expand', ncol=len(clustIndx)/2, loc=9, prop={'size':10})
         ax.grid(color='grey')
         fig.canvas.draw()
-        sender().parentWidget().close()
+        self.sender().parentWidget().close()
         
     ########################################################################################################
 
@@ -3172,7 +3210,7 @@ class pySpikeSorter(QtGui.QMainWindow):
     def SetisMultiunit_proc(self):
 
         sender = self.sender()
-        state  = sender.checkState()
+        #state  = sender.checkState()
         unitNo = int(sender.objectName())
 
         # current node name
@@ -3252,7 +3290,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
     def RepairUnitNames_proc(self):
 
-        unitNames = [k for k in self.CurNode.__members__ if k.find(Unit)!=-1]
+        unitNames = [k for k in self.CurNode.__members__ if k.find('Unit')!=-1]
 
         for j,k in enumerate(unitNames):
             if k != 'Unit%02d' % j:
