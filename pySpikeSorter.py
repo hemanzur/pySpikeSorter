@@ -90,8 +90,10 @@ def KlustaKwik_call(data, minClust = 2, maxClust = 5):
         f.write('\n')
     f.close()
     
-    # call klustakwick with the data 
-    os.system('KlustaKwik data 1 -MinClusters %d -MaxClusters %d' % (minClust, maxClust))
+    # call klustakwick with the data
+    if os.system('KlustaKwik data 1 -MinClusters %d -MaxClusters %d'\
+        % (minClust, maxClust)) != 256:
+            return
 
     # read the results
     f = open('data.clu.1','r')
