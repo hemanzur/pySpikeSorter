@@ -5,6 +5,8 @@ import guidata.dataset.datatypes as dt
 import guidata.dataset.dataitems as di
 from matplotlib.pyplot import cm
 
+colormaps = [k for k in cm.datad.keys() if not k.endswith('_r')]
+
 ########## MERGE UNITS WIDGET #######################################################
 
 class MergeUnitsWidget(QtGui.QWidget):
@@ -12,9 +14,7 @@ class MergeUnitsWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.setWindowTitle('Merge Units')
         hlay = QtGui.QHBoxLayout()
-        items = ['casa','perro','arbol','tia','ksaka','blablabal']
         self.list1 = QtGui.QListWidget()
-        self.list1.addItems(items)
         self.list1.setMaximumWidth(100)
         self.list2 = QtGui.QListWidget()
         self.list2.setMaximumWidth(100)
@@ -72,8 +72,6 @@ class MoveUnitsWidget(QtGui.QWidget):
         self.setWindowTitle('Move Units')
         hlay = QtGui.QHBoxLayout()
         self.list = QtGui.QListWidget()
-        items = ['casa','perro','arbol','tia','ksaka','blablabal']
-        self.list.addItems(items)
         self.list.setMaximumWidth(100)
         icon = QtGui.QIcon.fromTheme('go-up')
         btnUp = QtGui.QPushButton(icon,'')

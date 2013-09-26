@@ -64,6 +64,10 @@ will not work because in order to use MayaVi (3d visualizatons), there are some 
 ###Video Tutorial:
 in progress ...
 
+##Screenshots:
+[![Screenshot 1](screenshots/thumbnails/01.jpg)](images/01.png)
+[![Screenshot 2](screenshots/thumbnails/02.jpg)](images/02.png)
+
 ##H5File Definition:
 pySpikeSorter allows to sort spike events saved in an H5File.
 The package [Neo](http://pythonhosted.org/neo/), makes possible to read data in various formats and transform those into an h5file.
