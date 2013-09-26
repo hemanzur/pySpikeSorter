@@ -87,3 +87,6 @@ The h5file basic structure is as follows:
     * 'isMultiunit': boolean
     * 'TimeStamp': a numpy vector containing the timestamps (in milliseconds) of the neural events.
     * 'isTrash': Boolean.
+    
+##To do List:
+* Tetrodes implementation.
