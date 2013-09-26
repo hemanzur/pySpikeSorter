@@ -65,8 +65,8 @@ will not work because in order to use MayaVi (3d visualizatons), there are some 
 in progress ...
 
 ##Screenshots:
-[![Screenshot 1](screenshots/thumbnails/01.jpg)](images/01.png)
-[![Screenshot 2](screenshots/thumbnails/02.jpg)](images/02.png)
+[![Screenshot 1](screenshots/thumbnails/01.jpg)](screenshots/01.png)
+[![Screenshot 2](screenshots/thumbnails/02.jpg)](screenshots/02.png)
 
 ##H5File Definition:
 pySpikeSorter allows to sort spike events saved in an H5File.
