@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Pyspikesorter by hemanzur</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Pyspikesorter</h1>
+        <p class="header">A pure python Spike sorter</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/hemanzur/pySpikeSorter/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/hemanzur/pySpikeSorter/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/hemanzur/pySpikeSorter">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/hemanzur">hemanzur</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="pyspikesorter" class="anchor" href="#pyspikesorter"><span class="octicon octicon-link"></span></a>pySpikeSorter</h1>
+
+<ul>
+<li>A(nother) spike sorting utility capable of helping in the analisis of extracelullar action potential recordings.</li>
+<li>It is inspired by some of the features of the offline sorter software from plexon.</li>
+<li>It is intended to be a completely "Manual" solution for spike sorting (old school neurophysiologists don't like automated stuf,
+although there is some work to provide and/or interface with automatic clustering algorithms.</li>
+<li>It is far from being complete, but at this moment it is functional.</li>
+<li>I'm not a programmer, so I think there are lots of things that can be improved, that is why any comments aiming at improving it are welcome.</li>
+</ul><h2>
+<a name="installation-instructions" class="anchor" href="#installation-instructions"><span class="octicon octicon-link"></span></a>Installation Instructions:</h2>
+
+<h3>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements:</h3>
+
+<ul>
+<li>Numpy</li>
+<li>Scipy</li>
+<li>Matplotlib</li>
+<li>PyQt4</li>
+<li>Guidata</li>
+<li>traits</li>
+<li>traitsui</li>
+<li>mayavi</li>
+<li>pytables</li>
+<li>optional: Klustakwik</li>
+</ul><p>To meet all the requirements is important to have a working python installation.</p>
+
+<p>In Debian based linux distributions i.e. <strong>ubuntu</strong> you can do:</p>
+
+<pre><code>sudo apt-get install python-numpy python-scipy python-tables python-guidata python-matplotlib python-traits python-traitsui mavayi2
+</code></pre>
+
+<p>In <strong>Windows</strong> it is recomemnded to install a python bundle, for example <a href="https://code.google.com/p/pythonxy/">PythonXY</a>.</p>
+
+<p>Under <strong>MacOS</strong> it is recommended to install the <a href="https://www.enthought.com/products/canopy/">Enthought</a> package, which bundles most of the requirements.
+If you do not want to install enthought, there are guides that can be used to succesfully install python in MAC: <a href="http://powernap.github.io/blog/2012/08/20/install-python-together-with-vtk-using-homebrew-for-mountain-lion/">link1</a>
+, <a href="http://docs.python-guide.org/en/latest/starting/install/osx/">link2</a></p>
+
+<h3>
+<a name="running-pyspikesorter" class="anchor" href="#running-pyspikesorter"><span class="octicon octicon-link"></span></a>Running pySpikeSorter:</h3>
+
+<p>There is no installation needed. Just download the files to a known location, and from the command line run:</p>
+
+<pre><code>cd /folder/that/contains/the/files
+ipython -i pySpikeSorter.py
+</code></pre>
+
+<h4>
+<a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes:</h4>
+
+<ul>
+<li>It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.<br>
+</li>
+<li>If you are going to use ipython, please make sure that it doesn't load any PyQt4 library before loading pySpikeSorter, for example, calling:</li>
+</ul><pre><code>ipython --pylab=qt -i pySpikeSorter.py
+</code></pre>
+
+<p>will not work because in order to use MayaVi (3d visualizatons), there are some tweaks needed to be made before loading PyQt4.</p>
+
+<h2>
+<a name="tutorial" class="anchor" href="#tutorial"><span class="octicon octicon-link"></span></a>Tutorial:</h2>
+
+<ul>
+<li>A "test.h5" file is provided, which can be loaded in the appplication clicking on the green button.</li>
+<li>It should display an overview of the channels</li>
+<li>By clicking a particular channel it gets selected. Clicking the "Plot Chan" button plots the data in a specific Tab.</li>
+<li>Under that tab there are aeveral analisys and tools that can be used to sort the data.</li>
+</ul><h3>
+<a name="video-tutorial" class="anchor" href="#video-tutorial"><span class="octicon octicon-link"></span></a>Video Tutorial:</h3>
+
+<p>in progress ...</p>
+
+<h2>
+<a name="screenshots" class="anchor" href="#screenshots"><span class="octicon octicon-link"></span></a>Screenshots:</h2>
+
+<p><a href="screenshots/03.png"><img src="screenshots/thumbnails/03.jpg" alt="Screenshot 1"></a>
+<a href="screenshots/04.png"><img src="screenshots/thumbnails/04.jpg" alt="Screenshot 2"></a>
+<a href="screenshots/06.png"><img src="screenshots/thumbnails/06.jpg" alt="Screenshot 3"></a>
+<a href="screenshots/12.png"><img src="screenshots/thumbnails/12.jpg" alt="Screenshot 4"></a>
+<a href="screenshots/13.png"><img src="screenshots/thumbnails/13.jpg" alt="Screenshot 5"></a></p>
+
+<h2>
+<a name="h5file-definition" class="anchor" href="#h5file-definition"><span class="octicon octicon-link"></span></a>H5File Definition:</h2>
+
+<p>pySpikeSorter allows to sort spike events saved in an H5File.
+The package <a href="http://pythonhosted.org/neo/">Neo</a>, makes possible to read data in various formats and transform those into an h5file.
+The excellent package <a href="http://www.pytables.org/moin">Pytables</a> provides a convenient way to create and manipulate these files.</p>
+
+<p>To facilitate the process, a sample h5file with the basic structure is provided. You can examine the internal structure of the files
+using the <a href="http://vitables.org/">viTables</a> application.
+The h5file basic structure is as follows:</p>
+
+<ul>
+<li>A group or folder called 'Spikes' (capital 'S')</li>
+<li>Inside, one grou/folder named 'Chan_000', where the zeros are replaced by the channel number. Note that the script asumes there are three integers.</li>
+<li>Inside each channel folder a:
+
+<ul>
+<li>'Waveforms' numpy array, with the shape (events, points)</li>
+<li>'Unsorted': numpy array containing the indices of the unsorted events.</li>
+<li>'isMultiunit': boolean</li>
+<li>'TimeStamp': a numpy vector containing the timestamps (in milliseconds) of the neural events.</li>
+<li>'isTrash': Boolean.</li>
+</ul>
+</li>
+</ul><h2>
+<a name="to-do-list" class="anchor" href="#to-do-list"><span class="octicon octicon-link"></span></a>To do List:</h2>
+
+<ul>
+<li>Tetrodes implementation.</li>
+</ul>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
