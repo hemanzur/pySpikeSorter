@@ -221,6 +221,7 @@ def addSpikes2H5(h5file, pth, bas_header, ext_header, pd = None):
             # animate progression bar
             pd.setLabelText('%s' % f)
             pd.setValue(n+1)
+            QtGui.QApplication.processEvents()
 
         # open binary fragment
         fid      = open(f, 'rb')
@@ -284,6 +285,7 @@ def addNonNeural2H5(h5file, pth, bas_header, pd = None):
     if pd is not None:
         pd.setLabelText('Adding Non Neural Data ...')
         pd.setValue(pd.value()+1)
+        QtGui.QApplication.processEvents()
         
     binCode = np.int8([ map(int, np.binary_repr(k, width = 16)) for k in code], ndmin=2)
     tmp     = np.ones( shape = (1, binCode.shape[1]), dtype = np.int8)
@@ -613,6 +615,7 @@ def addLFP2h5(h5file = None, nsFileName = None, pd = None):
         else:
             if pd is not None:
                 pd.setValue(pd.maximum()+1)
+                QtGui.QApplication.processEvents()
             return
     elif type(h5file) == str:
         h5file = tables.openFile(h5file, 'a')
@@ -621,12 +624,15 @@ def addLFP2h5(h5file = None, nsFileName = None, pd = None):
     if not nsFileName:
         nsFileName = str(QtGui.QFileDialog.getOpenFileName(filter = '*.ns2'))
         if not nsFileName:
-            if pd is not None: pd.setValue(pd.maximum()+1)
+            if pd is not None:
+                pd.setValue(pd.maximum()+1)
+                QtGui.QApplication.processEvents()
             return
 
     if pd is not None:
         pd.setLabelText('Adding LFP data ...')
         pd.setValue(pd.value()+1)
+        QtGui.QApplication.processEvents()
         
     # read the data into a dictionary
     NSx = readNS2(nsFileName)
