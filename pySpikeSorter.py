@@ -969,7 +969,7 @@ class pySpikeSorter(QtGui.QMainWindow):
             # append nones to the waveforms array and reshape it to a vector
             Wf = np.append(Wf, nones, axis=1).reshape((n*(self.WfSize+1),))
 
-            # create a vector time based on the sampling frequency, the
+            # create a vector time, based on the sampling frequency, the
             # the number of points per spike and the timestamp
             Ts = np.tile(Ts, (self.WfSize,1)).transpose() + \
                  np.tile(np.linspace(0, self.End, self.WfSize),(n,1))
@@ -3126,8 +3126,10 @@ class pySpikeSorter(QtGui.QMainWindow):
             
         ac, x = autocorr(ts, binSize = 10, Win = [0,10000],
                          mode = 'fft', Range = [-150, 150])
+        ac[ac.argmax()] = 0
         ax2.plot(x, ac, color = self.UnitColors[unitNo], lw = 2)
-        ax2.set_xlim(-200, 200)
+        ax2.set_xlim(-600, 600)
+        ax2.set_ylim(0, ac.max())
         ax2.tick_params(color = [.5, .5, .5], labelcolor=[.5, .5, .5])
         for k in ax2.spines.values(): k.set_edgecolor([.5, .5, .5])
         ax2.set_yticklabels([])
