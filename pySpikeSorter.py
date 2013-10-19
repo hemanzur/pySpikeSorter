@@ -700,7 +700,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         # configures the waveforms figure
         wavesfig = self.ChanTab['WavesFigure'].figure
         ax = wavesfig.add_subplot(111)
-        self.trimWaveformsRect = matplotlib_widgets.MyRectangleSelector(ax, self.TrimWaveforms_proc, drawtype='line', useblit=True)
+        self.trimWaveformsRect = matplotlib_widgets.MyRectangleSelector(ax,
+                                                                        self.TrimWaveforms_proc,
+                                                                        drawtype='line',
+                                                                        useblit=True)
         self.trimWaveformsRect.set_active(False)
         ax.set_axis_bgcolor('k')
         ax.set_xticklabels([])
@@ -2307,13 +2310,19 @@ class pySpikeSorter(QtGui.QMainWindow):
         # if it is visible, and if it is the current unit
         unitFound = False
         for k in self.ChanTab['WavesFigure'].figure.axes[0].get_children():
-            if isinstance(k.get_label(), str)\
-               and re.search('Unit[0-9]{2}', k.get_label()) and k.get_visible():
-                if self.CurUnit == int(re.search('(?<=Unit)[0-9]{2}', k.get_label()).group()):
-                    unitFound = True
-                    break
+            try:
+                if k.get_label().find('Unit') != -1 and \
+                   k.get_visible() and \
+                   'Unit%02d' % self.CurUnit == k.get_label():
+                       unitFound = True
+                       break
+            except:
+                continue
 
-        if not unitFound: return
+        if not unitFound:
+            print "No units found in the plot ..."
+            self.trimWaveformsRect.set_active(False)
+            return
 
         # get the indices
         indx = self.h5file.getNode('/Spikes/Chan_%03d/%s' % (self.CurChan, self.CurUnitName), 'Indx').read()
@@ -2326,7 +2335,9 @@ class pySpikeSorter(QtGui.QMainWindow):
         y2 = erelease.ydata
 
         # return if is a point and not a line
-        if x1 == x2: return
+        if x1 == x2:
+            self.trimWaveformsRect.set_active(False)
+            return
         
         m = (y2 - y1)/(x2 - x1)
         n = y1 - m*x1
@@ -2353,7 +2364,7 @@ class pySpikeSorter(QtGui.QMainWindow):
             if (np.all(k<0) or np.all(k>0)) == False:
                 intersect.append(j)
 
-        print intersect
+        #print intersect
 
         # update the node containing the unit indexes
         self.h5file.removeNode(self.CurNodeName + '/' + self.CurUnitName, 'Indx')
