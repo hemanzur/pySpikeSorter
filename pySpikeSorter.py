@@ -32,6 +32,8 @@ from matplotlib.path import Path
 from scipy.spatial import cKDTree
 import datetime
 
+import m_BlackrockLib as BL
+
 ########## UTILITY FUNCTIONS #######################################################
 
 def autocorr(TimeStamp, binSize = 20, Win = [0,10000], mode = 'time', Range = [-200, 200]):
@@ -256,16 +258,6 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         grp = QtGui.QGroupBox('General Tools', ToolsTab1)
         glay = QtGui.QGridLayout()
-        
-	'''
-        convertFileBtn = QtGui.QPushButton('Convert File')
-        convertFileBtn.clicked.connect(self.ConvertNevFile)
-        glay.addWidget(convertFileBtn, 0,0)
-
-        bin2H5Btn = QtGui.QPushButton('Bin2H5')
-        bin2H5Btn.clicked.connect(bin2h5.bin2h5)
-        glay.addWidget(bin2H5Btn, 0, 1)
-	'''	
 	
         setSettigsBtn = QtGui.QPushButton('Settings')
         setSettigsBtn.clicked.connect(self.Settings)
@@ -282,6 +274,15 @@ class pySpikeSorter(QtGui.QMainWindow):
         exitBtn = QtGui.QPushButton('Exit')
         exitBtn.clicked.connect(self.closeEvent)
         glay.addWidget(exitBtn, 1, 1)
+        
+        
+        convertFileBtn = QtGui.QPushButton('Convert File')
+        convertFileBtn.clicked.connect(BL.bin2h5)
+        glay.addWidget(convertFileBtn, 2,0)
+
+        '''bin2H5Btn = QtGui.QPushButton('Bin2H5')
+        bin2H5Btn.clicked.connect(bin2h5.bin2h5)
+        glay.addWidget(bin2H5Btn, 0, 1)'''
 
         grp.setLayout(glay)
         toolslay.addWidget(grp)
@@ -3749,6 +3750,6 @@ if __name__ == '__main__':
         app = QtGui.QApplication.instance()
     ss = pySpikeSorter()
     ss.show()
-    app.exec_()
+    #app.exec_()
 
 ############################################################################################################
