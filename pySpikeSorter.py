@@ -1848,7 +1848,7 @@ class pySpikeSorter(QtGui.QMainWindow):
                         indx = leaf.read()
 
                     # plot unsorted
-                    ax1.plot(x[indx,:], y[indx,:], ',',
+                    ax1.plot(x[indx], y[indx], ',',
                              color = [.5, .5, .5], label = 'data_Unsorted')
                     
                 unit = re.search('(?<=Unit)[0-9]{2}', leaf._v_name)
@@ -1859,7 +1859,7 @@ class pySpikeSorter(QtGui.QMainWindow):
                     else:
                         indx = leaf.Indx.read()
                         
-                    ax1.plot(x[indx,:], y[indx,:], ',', label = 'data_'+leaf._v_name,
+                    ax1.plot(x[indx], y[indx], ',', label = 'data_'+leaf._v_name,
                              rasterized = True,
                              color = self.UnitColors[int(unit.group()),:],
                              mec = self.UnitColors[int(unit.group()),:])
