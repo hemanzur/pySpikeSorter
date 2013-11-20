@@ -14,10 +14,9 @@
 * Scipy
 * Matplotlib
 * PyQt4
-* Guidata
-* traits
-* traitsui
-* mayavi
+* pyopengl
+* guidata
+* pyqtgraph
 * pytables
 * optional: Klustakwik
 
