@@ -901,7 +901,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
     def SaveOverviewFig_proc(self):
         if self.H5FileLoaded:
-            fname = str(QtGui.QFileDialog.getSaveFileName(directory = self.h5file.filename[0:-3]+'_sorted.jpg'))
+            fname = str(QtGui.QFileDialog.getSaveFileName(directory = self.h5file.filename[0:-3]+'_sorted.png'))
             if fname:
                 self.OverviewTab1['Figure'].figure.savefig(fname, dpi = 300, facecolor = 'k')
         
@@ -3357,7 +3357,7 @@ class pySpikeSorter(QtGui.QMainWindow):
     def MergeUnits_proc(self):
 
         # get the list of units to merge
-        units2Merge = [self.MergeUnitsWidget.list2.item(k).text() for k in range(self.MergeUnitsWidget.list2.count())]
+        units2Merge = [str(self.MergeUnitsWidget.list2.item(k).text()) for k in range(self.MergeUnitsWidget.list2.count())]
         # sort the names
         units2Merge.sort()
         # if fewer than 2 return
