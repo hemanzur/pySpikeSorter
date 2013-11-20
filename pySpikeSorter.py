@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 ## Initialization Routine
 
 '''
@@ -18,11 +20,12 @@ import sys, os, re, tables
 import numpy as np
 
 # extra widgets import
-import mayavi_widgets
+#import mayavi_widgets
 import matplotlib_widgets
 import helper_widgets
 
 from PyQt4 import QtGui, QtCore
+from pyqtgraph import opengl as gl
 
 from matplotlib import rc
 from matplotlib.mlab import PCA
@@ -202,7 +205,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         
         btn = QtGui.QPushButton('Plot Overview')
-	btn.setStyleSheet('QPushButton{background-color: rgba(0,190,0)}')
+        btn.setStyleSheet('QPushButton{background-color: rgba(0,190,0)}')
         btn.clicked.connect(self.LoadH5File)
         vlay.addWidget(btn)
 
@@ -258,7 +261,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         grp = QtGui.QGroupBox('General Tools', ToolsTab1)
         glay = QtGui.QGridLayout()
-	
+        
         setSettigsBtn = QtGui.QPushButton('Settings')
         setSettigsBtn.clicked.connect(self.Settings)
         glay.addWidget(setSettigsBtn, 0, 0)
@@ -794,9 +797,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         mainRightLay.addWidget(tab)
 
         ###### 3D TAB Widget  #######################################
-        self.Widget3d = mayavi_widgets.MayaviQWidget()
+        #self.Widget3d = mayavi_widgets.MayaviQWidget()
+        self.Widget3d = gl.GLViewWidget()
         tab.addTab(self.Widget3d,'3D')
-        self.Fig3d = self.Widget3d.visualization.scene.mlab
+        #self.Fig3d = self.Widget3d.visualization.scene.mlab
 
         ######## Spikes vs time visualization widget #################
 
@@ -1022,10 +1026,10 @@ class pySpikeSorter(QtGui.QMainWindow):
         if settings.WorkingDir: d = settings.WorkingDir
         else: d = ''
         
-        f = QtGui.QFileDialog.getOpenFileName(parent = self,
-                                              caption = 'Select an H5 File',
-                                              directory = d,
-                                              filter = '*.h5')
+        f = str(QtGui.QFileDialog.getOpenFileName(parent = self,
+                                                  caption = 'Select an H5 File',
+                                                  directory = d,
+                                                  filter = '*.h5'))
 
         # in case there is not file selected
         if not f: return
@@ -2105,12 +2109,27 @@ class pySpikeSorter(QtGui.QMainWindow):
             y = y[valid]
             z = z[valid]
 
-
+        items = self.Widget3d.items
+        for i in items:
+            self.Widget3d.removeItem(i)
+        
+        grid = gl.GLGridItem()
+        self.Widget3d.addItem(grid)
+        
         if zlabel != 'Density':
-            self.Fig3d.clf()
-            self.Fig3d.points3d(x,y,z, mode = 'point')
-            self.Fig3d.axes()
+            print np.array([x,y,z]).shape
+            handle = gl.GLScatterPlotItem(pos = np.array([x,y,z]).transpose(),
+                                                     size = np.ones(x.size),
+                                                     color = (1.0, 0.0, 0.0, 1.0),
+                                                     pxMode = True)
+                                                    #sp2.translate(5,5,0)
+            self.Widget3d.addItem(handle)
+            #self.Fig3d.clf()
+            #self.Fig3d.points3d(x,y,z, mode = 'point')
+            #self.Fig3d.axes()
         else:
+            #pass
+            
             # obtain axes and first axes limits
             ax1 = self.ChanTab['FeaturesFig'].figure.axes[0]
             #xlim = ax1.get_xlim()
@@ -2134,13 +2153,20 @@ class pySpikeSorter(QtGui.QMainWindow):
             inpoly = Path(verts).contains_points(xypoints)
 
             # create a 2d histogram of the data and scale it logaritmically
-            h,xd,yd = np.histogram2d(xypoints[inpoly,0], xypoints[inpoly,1],
-                                     bins = self.PlotDensityBins.value(), normed = False)
+            h, _, _ = np.histogram2d(xypoints[inpoly,0], xypoints[inpoly,1],
+                                      bins = self.PlotDensityBins.value(), normed = False)
             h[h<=0] = 1
             h = np.log10(h)
-            self.Fig3d.clf()
-            self.Fig3d.barchart(h*10)
-            self.Fig3d.axes()
+            print h.shape
+            x,y = h.shape
+            x, y = np.arange(x), np.arange(y)
+            handle = gl.GLSurfacePlotItem(x, y, z = 10*h/h.max(), shader = 'heightColor')
+            handle.translate(-x.size/2.0, -y.size/2.0, 0.0)
+            handle.scale(1, 1, 2)
+            self.Widget3d.addItem(handle)
+            #self.Fig3d.clf()
+            #self.Fig3d.barchart(h*10)
+            #self.Fig3d.axes()
         
     ########################################################################################################
         
@@ -2315,8 +2341,8 @@ class pySpikeSorter(QtGui.QMainWindow):
                 if k.get_label().find('Unit') != -1 and \
                    k.get_visible() and \
                    'Unit%02d' % self.CurUnit == k.get_label():
-                       unitFound = True
-                       break
+                    unitFound = True
+                    break
             except:
                 continue
 
@@ -2677,7 +2703,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         self.ChanTab['UnitFigures'][self.CurUnitName].figure.canvas.draw()
         
         # update the overview figure
-        for j,k in enumerate(self.OverviewTab1['Figure'].figure.axes):
+        for k in self.OverviewTab1['Figure'].figure.axes:
             if k.get_title().find(str(self.CurChan))!=-1:
                 break
         self.PlotChanOverview_proc(self.CurNode, axes2Plot = k)
@@ -3654,7 +3680,9 @@ class pySpikeSorter(QtGui.QMainWindow):
         self.ChanTab['WavesFigure'].figure.canvas.draw()
 
         # clean the 3d widget
-        self.Fig3d.clf()
+        for k in self.Widget3d.items:
+            self.Widget3d.removeItem(k)
+        #self.Fig3d.clf()
         
         # set the current indexes of the X and Y variable-selecting comboboxes
         self.XPlot.setCurrentIndex(0)
@@ -3750,6 +3778,6 @@ if __name__ == '__main__':
         app = QtGui.QApplication.instance()
     ss = pySpikeSorter()
     ss.show()
-    #app.exec_()
+    sys.exit(app.exec_())
 
 ############################################################################################################
