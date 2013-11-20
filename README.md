@@ -25,7 +25,9 @@ To meet all the requirements is important to have a working python installation.
 In Debian based linux distributions i.e. **ubuntu** you can do:
 
 ```
-sudo apt-get install python-numpy python-scipy python-tables python-guidata python-matplotlib python-traits python-traitsui mavayi2
+sudo apt-get install python-numpy python-scipy python-tables python-guidata python-matplotlib
+sudo apt-get install python-opengl python-qt4-gl
+sudo pip install pyqtgraph
 ```
 
 In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/).
