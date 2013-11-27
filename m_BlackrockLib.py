@@ -682,44 +682,56 @@ def bin2h5(nevFile = None, nsxFile = None, pth = None):
     else:
         return
 
-    pth = os.path.split(nevFile)[0]
+    # return if no files are provided
+    if not os.path.isfile(nevFile) and not os.path.isfile(nsxFile):
+        return
     
-    # first extract all the fragments from the NEV file
-    pth = ext_fragments(filename = nevFile, outdir = pth)
-
-    # read the list of filenames of fragments
-    files = glob(os.path.join(pth, 'channel*'))
-    files.sort()
-    title = os.path.split(pth)[1]
-
+    # if we were provided with a nev file
+    if os.path.isfile(nevFile):
+        
+        # first do spike operations
+        pth = os.path.split(nevFile)[0]
+        
+        # first extract all the fragments from the NEV file
+        pth = ext_fragments(filename = nevFile, outdir = pth)
+    
+        # read the list of filenames of fragments
+        files = glob(os.path.join(pth, 'channel*'))
+        files.sort()
+        title = os.path.split(pth)[1]
+    
+        # load the pickled headers:
+        tmp = pickle.load(open(os.path.join(pth,'headers.p'),'rb'))
+        bas_header = tmp[0]
+        ext_header = tmp[1]
+        
+        SPIKES = True
+    
     # create a new h5 file
     filename = os.path.join(pth, title) + '.h5'
     h5file   = tables.openFile(filename, mode = 'w', title = title)
 
-    # load the pickled headers:
-    tmp = pickle.load(open(os.path.join(pth,'headers.p'),'rb'))
-    bas_header = tmp[0]
-    ext_header = tmp[1]
-    
     # create and display a progression bar
     pd = QtGui.QProgressDialog('Processing Files', 'Cancel', 0, len(files)+2)
     pd.setWindowTitle('Processing Files ...')
     pd.setGeometry(500, 500, 500, 100)
     pd.show()
 
-    # create basic structure inside the h5file
-    h5file.createGroup('/','Header')
-    h5file.createArray('/Header', 'NChans', len(files))
-    h5file.createArray('/Header', 'Date', np.array(bas_header['time origin']))
-
-    # add the spike data
-    addSpikes2H5(h5file, pth, bas_header, ext_header, pd = pd)    
-
-    # add non neural data
-    addNonNeural2H5(h5file, pth, bas_header, pd = pd)
+    if SPIKES:
+        # create basic structure inside the h5file
+        h5file.createGroup('/','Header')
+        h5file.createArray('/Header', 'NChans', len(files))
+        h5file.createArray('/Header', 'Date', np.array(bas_header['time origin']))
     
-    # add the lfp nsx file
-    addLFP2h5(h5file, nsFileName = nsxFile, pd = pd)
+        # add the spike data
+        addSpikes2H5(h5file, pth, bas_header, ext_header, pd = pd)    
+        
+        # add non neural data
+        addNonNeural2H5(h5file, pth, bas_header, pd = pd)
+    
+    if os.path.isfile(nsxFile):
+        # add the lfp nsx file
+        addLFP2h5(h5file, nsFileName = nsxFile, pd = pd)
     
     # close the h5file
     h5file.close()

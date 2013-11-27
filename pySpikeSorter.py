@@ -1,13 +1,11 @@
-#!/usr/bin/python
-
-## Initialization Routine
+#!/usr/bin/ipython -i
 
 '''
 Required Packages:
     - Numpy
     - Matplotlib
-    - Mayavi2
     - Scipy
+    - pyqtgraph
     - Spatial (KDTree)
     - PyQt4
     - guidata
@@ -20,7 +18,6 @@ import sys, os, re, tables
 import numpy as np
 
 # extra widgets import
-#import mayavi_widgets
 import matplotlib_widgets
 import helper_widgets
 
@@ -39,7 +36,7 @@ import m_BlackrockLib as BL
 
 ########## UTILITY FUNCTIONS #######################################################
 
-def autocorr(TimeStamp, binSize = 20, Win = [0,10000], mode = 'time', Range = [-200, 200]):
+def autocorr(TimeStamp, binSize = 20, Win = [0, 10000], mode = 'time', Range = [-200, 200]):
 
     if not np.any(TimeStamp): return
     
@@ -130,15 +127,15 @@ settings     = helper_widgets.Settings()
 autocorropts = helper_widgets.AutocorrOpts()
 autoclust    = helper_widgets.AutoClustWidget()
     
-class pySpikeSorter(QtGui.QMainWindow):
+class SpikeSorter(QtGui.QMainWindow):
 
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
-
-        self.setWindowTitle("Spike Sorter GUI")
+        
+        self.setWindowTitle("pySpikeSorter")
         self.setWindowIcon(QtGui.QIcon(QtGui.QPixmap('spike_icon.png')))
-        self.main_widget = QtGui.QWidget(self)
-        self.MainLayout  = QtGui.QHBoxLayout(self.main_widget)
+        self.MainWidget = QtGui.QWidget(self)
+        self.MainLayout = QtGui.QHBoxLayout(self.MainWidget)
         self.MainLayout.setMargin(0)
         self.MainLayout.setSpacing(0)
         
@@ -162,7 +159,7 @@ class pySpikeSorter(QtGui.QMainWindow):
 
         ########### TOOLBAR ON THE LEFT SIDE ################################
 
-        split1 = QtGui.QSplitter(QtCore.Qt.Horizontal, self.main_widget)   ## SPLITTER
+        split1 = QtGui.QSplitter(QtCore.Qt.Horizontal, self.MainWidget)   ## SPLITTER
         self.ToolsTab = QtGui.QTabWidget()
 
         ToolsTab1 = QtGui.QWidget()
@@ -336,7 +333,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         toolslay.addStretch(1)
 
         ToolsTab1.setLayout(toolslay)
-
+        
         ########### self.ToolsTab No 2 #############################################
 
         toolslay = QtGui.QVBoxLayout()
@@ -456,7 +453,6 @@ class pySpikeSorter(QtGui.QMainWindow):
         self.Plot3DBtn = QtGui.QPushButton('Plot 3D', grp)
         self.Plot3DBtn.clicked.connect(self.Plot3DFeatures)
         hlay.addWidget(self.Plot3DBtn)
-
         vlay.addLayout(hlay)
 
         grp.setLayout(vlay)
@@ -623,8 +619,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         hlay.setSpacing(1)
         grp.setLayout(hlay)
         vlay.addWidget(grp)
-        
-        self.OverviewTab2['MainWidget'].setLayout(hlay)
+                
         self.MainFigTab.addTab(self.OverviewTab2['MainWidget'],'Summary Table')
         
         ##### CHANNEL TAB #####
@@ -671,7 +666,9 @@ class pySpikeSorter(QtGui.QMainWindow):
         hlay = QtGui.QHBoxLayout()
         self.ChanTab['WavesFigure'] = matplotlib_widgets.MplWidget()
         self.ChanTab['WavesFigure'].figure.set_facecolor('k')
-        self.ChanTab['WaveToolbar'] = matplotlib_widgets.NavToolbar(self.ChanTab['WavesFigure'], self.ChanTab['MainWidget'], coordinates=False)
+        self.ChanTab['WaveToolbar'] = matplotlib_widgets.NavToolbar(self.ChanTab['WavesFigure'],
+                                                                    self.ChanTab['MainWidget'],
+                                                                    coordinates=False)
         self.ChanTab['WaveToolbar'].setIconSize(QtCore.QSize(15,15))
         self.ChanTab['WaveToolbar'].setOrientation(QtCore.Qt.Vertical)
         self.ChanTab['WaveToolbar'].setMaximumWidth(30)
@@ -792,7 +789,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         vlay.setMargin(0)
         vlay.setSpacing(1)
         
-        widget.setLayout(vlay)
+        #widget.setLayout(vlay)
         tab.addTab(widget,'2D')
         mainRightLay.addWidget(tab)
 
@@ -890,10 +887,13 @@ class pySpikeSorter(QtGui.QMainWindow):
         self.MainLayout.addWidget(split1)
 
         # set the layout of the main widget
-        self.main_widget.setLayout(self.MainLayout)
+        #self.MainWidget.setLayout(self.MainLayout)
 
         # set the central widget of the application
-        self.setCentralWidget(self.main_widget)
+        self.setCentralWidget(self.MainWidget)
+        
+        # finally show the object
+        self.show()
 
     ########################################################################################################
     ################### METHODS ############################################################################
@@ -1439,7 +1439,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         
     def setTrash_proc(self):
         sender = self.sender()
-        chan = sender.property('Data')
+        chan = int(sender.property('Data'))
         nodeName = '/Spikes/Chan_%03d' % chan
 
         indx = self.ChansList.index(chan)
@@ -1673,7 +1673,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         
         curchan = int(self.ChanSelector.currentText())
         
-        if self.PlotValidsOnlyCheck.checkState()==2 and \
+        if self.PlotValidsOnlyCheck.checkState() == 2 and \
            self.CurNode.__contains__('ValidWFs'):
             print 'you selected to plot only the valid WFs'
 
@@ -1828,7 +1828,6 @@ class pySpikeSorter(QtGui.QMainWindow):
             ax2.set_axis_bgcolor('k')
             # create and plot a 2d histogram
             
-        
         # setup the axes
         ax1.set_title(title, fontdict={'color':'w'})
         ax1.tick_params(color = [.5, .5, .5])
@@ -2117,7 +2116,6 @@ class pySpikeSorter(QtGui.QMainWindow):
         self.Widget3d.addItem(grid)
         
         if zlabel != 'Density':
-            print np.array([x,y,z]).shape
             handle = gl.GLScatterPlotItem(pos = np.array([x,y,z]).transpose(),
                                                      size = np.ones(x.size),
                                                      color = (1.0, 0.0, 0.0, 1.0),
@@ -2157,7 +2155,6 @@ class pySpikeSorter(QtGui.QMainWindow):
                                       bins = self.PlotDensityBins.value(), normed = False)
             h[h<=0] = 1
             h = np.log10(h)
-            print h.shape
             x,y = h.shape
             x, y = np.arange(x), np.arange(y)
             handle = gl.GLSurfacePlotItem(x, y, z = 10*h/h.max(), shader = 'heightColor')
@@ -3162,7 +3159,7 @@ class pySpikeSorter(QtGui.QMainWindow):
         ts = self.CurTs[p]
         if ts.size > 1000: ts = ts[0:1000]
             
-        ac, x = autocorr(ts, binSize = 10, Win = [0,10000],
+        ac, x = autocorr(ts, binSize = 20, Win = [0,10000],
                          mode = 'fft', Range = [-150, 150])
         ac[ac.argmax()] = 0
         ax2.plot(x, ac, color = self.UnitColors[unitNo], lw = 2)
@@ -3776,8 +3773,8 @@ if __name__ == '__main__':
         app = QtGui.QApplication(sys.argv)
     else:
         app = QtGui.QApplication.instance()
-    ss = pySpikeSorter()
-    ss.show()
-    sys.exit(app.exec_())
+    spikesorter = SpikeSorter()
+    #sys.exit(app.exec_())
+
 
 ############################################################################################################
