@@ -1,4 +1,4 @@
-#!/usr/bin/ipython -i
+#!/usr/local/bin/ipython -i
 
 '''
 Required Packages:
@@ -403,7 +403,7 @@ class SpikeSorter(QtGui.QMainWindow):
         self.PlotDensityBins = QtGui.QSpinBox()
         self.PlotDensityBins.setMinimum(50)
         self.PlotDensityBins.setMaximum(300)
-        self.PlotDensityBins.setValue(50)
+        self.PlotDensityBins.setValue(100)
         hlay.addWidget(self.PlotDensityBins)
         vlay.addLayout(hlay)
 
@@ -2751,7 +2751,7 @@ class SpikeSorter(QtGui.QMainWindow):
         # obtain the unit data
         unitPts = self.h5file.getNode(nodeName, 'Indx').read()
 
-        # update the node containing the unit indexes
+        # update the node containing the unit indices
         self.h5file.removeNode(nodeName, 'Indx')
         self.h5file.createArray(nodeName, 'Indx', unitPts[p])
 

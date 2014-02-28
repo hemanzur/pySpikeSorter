@@ -1,5 +1,6 @@
-from PyQt4 import QtGui, QtCore
-import guidata, os
+from PyQt4 import QtGui
+import guidata, os, re
+import numpy as np
 app = guidata.qapplication()
 import guidata.dataset.datatypes as dt
 import guidata.dataset.dataitems as di
@@ -176,7 +177,6 @@ def KlustaKwik_call(data, minClust = 2, maxClust = 5):
     f.close()
     
     # call klustakwick with the data 
-    import os
     os.system('KlustaKwik data 1 -MinClusters %d -MaxClusters %d' % (minClust, maxClust))
 
     # read the results
