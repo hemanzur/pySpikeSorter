@@ -1,5 +1,5 @@
 #pySpikeSorter
-
+#Trufi
 * A(nother) spike sorting utility capable of helping in the analisis of extracelullar action potential recordings.
 * It is inspired by some of the features of the offline sorter software from plexon.
 * It is intended to be a completely "Manual" solution for spike sorting (old school neurophysiologists don't like automated stuf,
