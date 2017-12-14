@@ -2721,7 +2721,7 @@ class SpikeSorter(QtGui.QMainWindow):
         n = len(verts)
         self.verts = np.array(verts)
         if n > 25:
-            self.verts = self.verts[range(0, n, n / 25)]
+            self.verts = self.verts[range(0, n, int(n / 25))]
 
         # test which points lay inside the polygon
         p = Path(self.verts).contains_points(self.XYData.data)
