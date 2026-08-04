@@ -56,7 +56,7 @@ class MyLasso(Widget):
     def onmove(self, event):
         if self.verts is None:
             return
-        if event.in_axes != self.axes:
+        if event.inaxes != self.axes:
             return
         if event.button != 1:
             return
@@ -228,11 +228,11 @@ class MyRectangleSelector:
         # If no button was pressed yet ignore the event if it was out
         # of the axes
         if self.eventpress == None:
-            return event.in_axes!= self.ax
+            return event.inaxes!= self.ax
 
         # If a button was pressed, check if the release-button is the
         # same.
-        return  (event.in_axes!=self.ax or
+        return  (event.inaxes!=self.ax or
                  event.button != self.eventpress.button)
 
     def press(self, event):

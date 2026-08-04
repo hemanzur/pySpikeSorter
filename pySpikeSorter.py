@@ -248,7 +248,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
 
         #----------------------------------------------------------------------
         btn = QtWidgets.QPushButton('Plot Overview')
-        btn.setStyleSheet('QPushButton{background-color: rgba(0,190,0)}')
+        btn.setStyleSheet('QPushButton{background-color: rgb(0,190,0)}')
         btn.clicked.connect(self.load_h5_file)
         vlay.addWidget(btn)
 
@@ -1560,8 +1560,8 @@ class SpikeSorter(QtWidgets.QMainWindow):
     #__________________________________________________________________________
     def select_channel(self, event):
         ''' selects a channel when axes are clicked'''
-        if event.in_axes:
-            chan = int(re.search('(?<=Ch )[0-9]{1,3}', event.in_axes.get_title()).group())
+        if event.inaxes:
+            chan = int(re.search('(?<=Ch )[0-9]{1,3}', event.inaxes.get_title()).group())
             c = [int(self.chan_selector.itemText(k)) for k in range(self.chan_selector.count())].index(chan)
             self.chan_selector.setCurrentIndex(c)
 
@@ -1589,7 +1589,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
         ''' when right button clicked over the features window, calculates the closest
         point and plots its corresponding waveform'''
 
-        if event.button == 3 and event.in_axes and self.chan_tab['features_fig_toolbar'].mode == '':
+        if event.button == 3 and event.inaxes and self.chan_tab['features_fig_toolbar'].mode == '':
             featuresax = self.chan_tab['features_fig'].figure.axes[0]
             wavesax = self.chan_tab['waves_figure'].figure.axes[0]
 
@@ -1601,7 +1601,9 @@ class SpikeSorter(QtWidgets.QMainWindow):
                 self.chan_tab['features_fig'].figure.canvas.restore_region(k)
 
             _, res = self.xy_data.query([event.xdata, event.ydata], 1)
-            self.cursor.set_data(self.xy_data.data[res, 0], self.xy_data.data[res, 1])
+            res = int(res)
+            self.cursor.set_data([self.xy_data.data[res, 0]],
+                                 [self.xy_data.data[res, 1]])
             self.sample_waveform.set_data(list(range(self.wf_size)),
                                          self.cur_waveforms[self.data_index[res], :])
 
@@ -1759,8 +1761,8 @@ class SpikeSorter(QtWidgets.QMainWindow):
         if n_axes > 0 and \
            self.chan_tab['features_fig'].figure.axes[0].get_title() == title:
             same_limits = True
-            x_lim = self.chan_tab['features_fig'].figure.axes[0].get_x_lim()
-            y_lim = self.chan_tab['features_fig'].figure.axes[0].get_y_lim()
+            x_lim = self.chan_tab['features_fig'].figure.axes[0].get_xlim()
+            y_lim = self.chan_tab['features_fig'].figure.axes[0].get_ylim()
 
         # plot only on one axes
         if self.plot_density_check.checkState() == 0:
@@ -1922,7 +1924,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
 
         # connect figure to the motion notify function
         if not ax1.callbacks.callbacks or not hasattr(self, 'ax_zoom_cid'):
-            self.ax_zoom_cid = ax1.callbacks.connect('y_lim_changed', self.axes_zoom)
+            self.ax_zoom_cid = ax1.callbacks.connect('ylim_changed', self.axes_zoom)
 
         # connect figure to the motion notify function
         if not hasattr(self, 'motion_cid'):
@@ -2107,7 +2109,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
             handle = gl.GLScatterPlotItem(pos=np.array([x, y, z]).T,
                                           size=np.ones(x.size),
                                           color=(1.0, 0.0, 0.0, 1.0),
-                                          pxmode=True)
+                                          pxMode=True)
             self.widget_3d.addItem(handle)
 
         else:
@@ -2115,8 +2117,8 @@ class SpikeSorter(QtWidgets.QMainWindow):
 
             # obtain axes and first axes limits
             ax1 = self.chan_tab['features_fig'].figure.axes[0]
-            #x_lim = ax1.get_x_lim()
-            #y_lim = ax1.get_y_lim()
+            #x_lim = ax1.get_xlim()
+            #y_lim = ax1.get_ylim()
 
             # search for the unsorted or the units plots to obatin data
             x_points = []
@@ -2162,8 +2164,8 @@ class SpikeSorter(QtWidgets.QMainWindow):
 
         # get axes handle and limits
         ax = self.chan_tab['features_fig'].figure.axes[0]
-        x_lim = ax.get_x_lim()
-        y_lim = ax.get_y_lim()
+        x_lim = ax.get_xlim()
+        y_lim = ax.get_ylim()
 
         # obtain coordinates of the current axes and uses that to build a polygon
         xyverts = [[x_lim[0], y_lim[0]], [x_lim[0], y_lim[1]], [x_lim[1], y_lim[1]], [x_lim[1], y_lim[0]]]
@@ -2216,8 +2218,8 @@ class SpikeSorter(QtWidgets.QMainWindow):
         # obtain axes and first axes limits
         ax1 = self.chan_tab['features_fig'].figure.axes[0]
         ax2 = self.chan_tab['features_fig'].figure.axes[1]
-        x_lim = ax1.get_x_lim()
-        y_lim = ax1.get_y_lim()
+        x_lim = ax1.get_xlim()
+        y_lim = ax1.get_ylim()
 
         # search for the unsorted or the units plots to obatin data
         x_points = []
@@ -2404,7 +2406,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
         # replot the unit avg waveform, histogram and autocorrelation
         self.plot_unit_figure()
 
-        eclick.in_axes.figure.canvas.draw()
+        eclick.inaxes.figure.canvas.draw()
 
         self.trim_waveforms_rect.set_active(False)
 
@@ -2473,7 +2475,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
             return
 
         # check if what is plotted is all waveforms or unsorted
-        title = str(self.chan_tab['features_fig'].figure.axes[0].get_title())
+        title = str(self.chan_tab['features_fig'].figure.axes[0].get_title()).lower()
         if not re.search('waveforms|unsorted', title):
             return
 
@@ -2516,7 +2518,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
             return
 
         # check if what is plotted is all waveforms or unsorted
-        title = str(self.chan_tab['features_fig'].figure.axes[0].get_title())
+        title = str(self.chan_tab['features_fig'].figure.axes[0].get_title()).lower()
         if not re.search('waveforms|unsorted', title):
             return
 
@@ -2556,14 +2558,14 @@ class SpikeSorter(QtWidgets.QMainWindow):
                 del self.lasso_cid
             return
 
-        if event.in_axes is None or event.button != 1:
+        if event.inaxes is None or event.button != 1:
             if hasattr(self, 'lasso_cid'):
                 self.chan_tab['features_fig'].figure.canvas.mpl_disconnect(self.lasso_cid)
                 del self.lasso_cid
             return
 
         # create a lasso instance
-        self.lasso = matplotlib_widgets.MyLasso(event.in_axes, (event.xdata, event.ydata),
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
                                                 self.lasso_callback_add_unit,
                                                 color='gray', lw=1)
         self.chan_tab['features_fig'].figure.canvas.widgetlock(self.lasso)
@@ -2576,7 +2578,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
                 del self.lasso_cid
             return
 
-        if event.in_axes is None or event.button != 1:
+        if event.inaxes is None or event.button != 1:
             if hasattr(self, 'lasso_cid'):
                 self.chan_tab['features_fig'].figure.canvas.mpl_disconnect(self.lasso_cid)
                 del self.lasso_cid
@@ -2584,7 +2586,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
 
         self.keep_btn.setCheckable(True)
         self.keep_btn.setChecked(True)
-        self.lasso = matplotlib_widgets.MyLasso(event.in_axes, (event.xdata, event.ydata),
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
                                                 self.lasso_callback_keep,
                                                 color='gray', lw=1)
         self.chan_tab['features_fig'].figure.canvas.widgetlock(self.lasso)
@@ -2597,13 +2599,13 @@ class SpikeSorter(QtWidgets.QMainWindow):
                 del self.lasso_cid
             return
 
-        if event.in_axes is None or event.button != 1:
+        if event.inaxes is None or event.button != 1:
             if hasattr(self, 'lasso_cid'):
                 self.chan_tab['features_fig'].figure.canvas.mpl_disconnect(self.lasso_cid)
                 del self.lasso_cid
             return
 
-        self.lasso = matplotlib_widgets.MyLasso(event.in_axes, (event.xdata, event.ydata),
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
                                                 self.lasso_callback_add_region,
                                                 color='gray', lw=1)
         self.chan_tab['features_fig'].figure.canvas.widgetlock(self.lasso)
@@ -2616,13 +2618,13 @@ class SpikeSorter(QtWidgets.QMainWindow):
                 del self.lasso_cid
             return
 
-        if event.in_axes is None or event.button != 1:
+        if event.inaxes is None or event.button != 1:
             if hasattr(self, 'lasso_cid'):
                 self.chan_tab['features_fig'].figure.canvas.mpl_disconnect(self.lasso_cid)
                 del self.lasso_cid
             return
 
-        self.lasso = matplotlib_widgets.MyLasso(event.in_axes, (event.xdata, event.ydata),
+        self.lasso = matplotlib_widgets.MyLasso(event.inaxes, (event.xdata, event.ydata),
                                                 self.lasso_callback_remove_region,
                                                 color='gray', lw=1)
         self.chan_tab['features_fig'].figure.canvas.widgetlock(self.lasso)
@@ -2652,11 +2654,14 @@ class SpikeSorter(QtWidgets.QMainWindow):
         # get the axes handle
         ax = self.chan_tab['features_fig'].figure.axes[0]
 
-        if re.search('Waveforms', ax.get_title()):
+        title = ax.get_title().lower()
+        if 'waveforms' in title:
             # test which points are inside the lasso
             xy_points = self.xy_data.data[self.unsorted, :]
-        elif re.search('Unsorted', ax.get_title()):
+        elif 'unsorted' in title:
             xy_points = self.xy_data.data
+        else:
+            return
 
         p = Path(self.verts).contains_points(xy_points)
 
@@ -2673,8 +2678,10 @@ class SpikeSorter(QtWidgets.QMainWindow):
         self.cur_unit_name = 'Unit%02d' % self.n_units
 
         # look for the unsorted plot handle in the axes
+        unsorted_line = None
         for k in self.chan_tab['features_fig'].figure.axes[0].get_children():
-            if re.search('Unsorted', str(k.get_label())):
+            if 'unsorted' in str(k.get_label()).lower():
+                unsorted_line = k
                 break
 
         # obtain the unsorted points
@@ -2688,8 +2695,9 @@ class SpikeSorter(QtWidgets.QMainWindow):
             indx = list(range(len_unsorted))
 
         # replot the unsorted without the corresponding points to the new unit
-        k.set_data(unsorted_data[:, 0][indx], unsorted_data[:, 1][indx])
-        ax.draw_artist(k)
+        if unsorted_line is not None:
+            unsorted_line.set_data(unsorted_data[:, 0][indx], unsorted_data[:, 1][indx])
+            ax.draw_artist(unsorted_line)
 
         # select some indices to plot
         unit_data = xy_points[p, :]
@@ -2791,7 +2799,7 @@ class SpikeSorter(QtWidgets.QMainWindow):
 
         # update plot:
         for k in ax.get_children():
-            if re.search(str(k.get_label), self.cur_unit_name):
+            if re.search(self.cur_unit_name, str(k.get_label())):
                 k.set_data(self.xy_data.data[:, 0], self.xy_data.data[:, 1])
                 ax.draw_artist(k)
                 break
@@ -2870,19 +2878,22 @@ class SpikeSorter(QtWidgets.QMainWindow):
         self.unsorted = self.h5file.get_node(self.cur_node_name, 'Unsorted').read()
 
         # check what is plotted on the axes
-        if re.search('Waveforms', str(ax.get_title())):
+        title = ax.get_title().lower()
+        if 'waveforms' in title:
             # test which points are inside the lasso
             p = Path(self.verts).contains_points(self.xy_data.data[self.unsorted, :])
             self.xy_data = cKDTree(self.xy_data.data[self.unsorted, :][p])
 
-        elif re.search('Unsorted', str(ax.get_title())):
+        elif 'unsorted' in title:
             # test which points are inside the lasso
             p = Path(self.verts).contains_points(self.xy_data.data)
             self.xy_data = cKDTree(self.xy_data.data[p, :])
+        else:
+            return
 
         # update plot:
         for k in ax.get_children():
-            if re.search(str(k.get_label), self.cur_unit_name):
+            if re.search(self.cur_unit_name, str(k.get_label())):
                 k.set_data(self.xy_data.data[:, 0], self.xy_data.data[:, 1])
                 ax.draw_artist(k)
                 break
