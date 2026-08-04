@@ -79,11 +79,11 @@ hemanzur@gmail.com
 import os, struct, tables, pickle, re, shutil
 from glob import glob
 import numpy as np
-from PyQt4 import QtGui
-import guidata.dataset.dataitems as di
-import guidata.dataset.datatypes as dt
-import guidata
-app = guidata.qapplication()
+from PyQt5 import QtGui, QtWidgets
+#import guidata.dataset.dataitems as di
+#import guidata.dataset.datatypes as dt
+#import guidata
+#app = guidata.qapplication()
 
 pth = os.path.expanduser('~')
 
@@ -659,7 +659,8 @@ def addLFP2h5(h5file = None, nsFileName = None, pd = None):
 ##########################################################################################
 ######## CONVERSION UTILITIES ############################################################
 ##########################################################################################
-                                 
+                      
+"""           
 class PthSelector(dt.DataSet):
     '''Helper class to create a dialog to input data'''
     
@@ -671,6 +672,7 @@ class PthSelector(dt.DataSet):
     nsxFile = di.FileOpenItem('NS2 file', formats=['ns2'])
 
 selectPth = PthSelector()
+"""
 
 ##########################################################################################
 

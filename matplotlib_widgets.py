@@ -1,9 +1,9 @@
 from matplotlib.widgets import Widget
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavToolbar
 from matplotlib.lines import Line2D
-from PyQt4 import QtGui
+from PyQt5 import QtGui
 
 
 ################## MATPLOTLIB WIDGET TO EMBED IN QT ###########################
@@ -15,8 +15,8 @@ class MplWidget(FigCanvas):
         FigCanvas.__init__(self, self.fig)
         if parent: self.setParent(parent)
 
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        # self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+        #                    QtGui.QSizePolicy.Expanding)
         self.updateGeometry()
 
 

@@ -3,29 +3,44 @@
 #---------------------------------------------------------------------- IMPORTS
 
 import os
-import pdb
+import sys
 
-from PyQt4 import QtGui, QtCore
+#from IPython.core import ultratb
+#sys.excepthook = ultratb.FormattedTB(mode='Plain',
+#color_scheme='Linux', call_pdb=1)
+
+from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtCore import pyqtRemoveInputHook, pyqtRestoreInputHook
+
+def debug_trace():
+    pyqtRemoveInputHook()
+    from pdb import set_trace
+    set_trace()
+    
+
+if not QtWidgets.QApplication.instance():
+    app = QtWidgets.QApplication([])
+else:
+    app = QtWidgets.QApplication.instance()
+
 from pyqtgraph import opengl as gl
 
 filename = os.environ.get('PYTHONSTARTUP')
 if filename and os.path.isfile(filename):
     exec(open(filename).read())
 
-import sys
+
 import re
 import tables
 import numpy as np
-#import pdb
 
 # extra widgets import
 import matplotlib_widgets
 import helper_widgets
 
-
-
 from matplotlib import rc
-from matplotlib.mlab import PCA
+# from matplotlib.mlab import PCA
+from sklearn.decomposition import PCA
 from matplotlib import pyplot as plt
 
 from matplotlib.path import Path
@@ -33,10 +48,6 @@ from scipy.spatial import cKDTree
 import datetime
 
 import m_BlackrockLib as BL
-
-#filename = os.environ.get('PYTHONSTARTUP')
-#if filename and os.path.isfile(filename):
-#    execfile(filename)
 
 
 #==============================================================================
@@ -134,22 +145,22 @@ rc('xtick', labelsize=8)
 rc('ytick', labelsize=8)
 
 # create instance of imported widgets
-settings = helper_widgets.Settings()
+#settings = helper_widgets.Settings()
 autocorropts = helper_widgets.AutocorrOpts()
 autoclust = helper_widgets.AutoClustWidget()
 
 
 #==============================================================================
-class SpikeSorter(QtGui.QMainWindow):
+class SpikeSorter(QtWidgets.QMainWindow):
 
     def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
 
         self.setWindowTitle("pySpikeSorter")
         self.setWindowIcon(QtGui.QIcon(QtGui.QPixmap('spike_icon.png')))
-        self.MainWidget = QtGui.QWidget(self)
-        self.MainLayout = QtGui.QHBoxLayout(self.MainWidget)
-        self.MainLayout.setMargin(0)
+        self.MainWidget = QtWidgets.QWidget(self)
+        self.MainLayout = QtWidgets.QHBoxLayout(self.MainWidget)
+        self.MainLayout.setContentsMargins(0, 0, 0, 0)
         self.MainLayout.setSpacing(0)
 
         self.CurUnit = 0
@@ -166,11 +177,11 @@ class SpikeSorter(QtGui.QMainWindow):
 
         #--------------------------------------------- TOOLBAR ON THE LEFT SIDE
 
-        split1 = QtGui.QSplitter(QtCore.Qt.Horizontal, self.MainWidget)   # SPLITTER
-        self.ToolsTab = QtGui.QTabWidget()
+        split1 = QtWidgets.QSplitter(QtCore.Qt.Horizontal, self.MainWidget)   # SPLITTER
+        self.ToolsTab = QtWidgets.QTabWidget()
 
-        ToolsTab1 = QtGui.QWidget()
-        ToolsTab2 = QtGui.QWidget()
+        ToolsTab1 = QtWidgets.QWidget()
+        ToolsTab2 = QtWidgets.QWidget()
 
         self.ToolsTab.addTab(ToolsTab1, 'Main Tools')
         self.ToolsTab.addTab(ToolsTab2, 'Chan Tools')
@@ -179,64 +190,64 @@ class SpikeSorter(QtGui.QMainWindow):
         split1.addWidget(self.ToolsTab)
 
         #---------------------------------------------------------ToolsTab No 1
-        toolslay = QtGui.QVBoxLayout()
+        toolslay = QtWidgets.QVBoxLayout()
 
         #-------------------------------------------------------------- FRAME 1
-        grp = QtGui.QGroupBox('Overview Tools', ToolsTab1)
-        vlay = QtGui.QVBoxLayout()
+        grp = QtWidgets.QGroupBox('Overview Tools', ToolsTab1)
+        vlay = QtWidgets.QVBoxLayout()
 
         # number of events to overview spin box
-        hlay = QtGui.QHBoxLayout()
-        self.OverviewNEventsSpin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.OverviewNEventsSpin = QtWidgets.QSpinBox()
         self.OverviewNEventsSpin.setRange(100, 1000)
         self.OverviewNEventsSpin.setSingleStep(100)
         self.OverviewNEventsSpin.setValue(500)
-        hlay.addWidget(QtGui.QLabel('N Events 2 Overview'))
+        hlay.addWidget(QtWidgets.QLabel('N Events 2 Overview'))
         hlay.addWidget(self.OverviewNEventsSpin)
         vlay.addLayout(hlay)
 
         # Y axis limits selector
-        hlay = QtGui.QHBoxLayout()
-        self.OverviewYLimsSpin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.OverviewYLimsSpin = QtWidgets.QSpinBox()
         self.OverviewYLimsSpin.setRange(100, 5000)
         self.OverviewYLimsSpin.setSingleStep(100)
         self.OverviewYLimsSpin.setValue(2000)
         self.OverviewYLimsSpin.editingFinished.connect(self.ChangeOverviewYLim_Proc)
-        hlay.addWidget(QtGui.QLabel('Overview Axes YLim'))
+        hlay.addWidget(QtWidgets.QLabel('Overview Axes YLim'))
         hlay.addWidget(self.OverviewYLimsSpin)
         vlay.addLayout(hlay)
 
         #----------------------------------------------------------------------
-        btn = QtGui.QPushButton('Plot Overview')
+        btn = QtWidgets.QPushButton('Plot Overview')
         btn.setStyleSheet('QPushButton{background-color: rgba(0,190,0)}')
         btn.clicked.connect(self.LoadH5File)
         vlay.addWidget(btn)
 
-        btn = QtGui.QPushButton('Save Overview')
+        btn = QtWidgets.QPushButton('Save Overview')
         btn.clicked.connect(self.SaveOverviewFig_proc)
         vlay.addWidget(btn)
 
         grp.setLayout(vlay)
         toolslay.addWidget(grp)
 
-        grp = QtGui.QGroupBox('Delete Channel Tools', ToolsTab1)
-        vlay = QtGui.QVBoxLayout()
+        grp = QtWidgets.QGroupBox('Delete Channel Tools', ToolsTab1)
+        vlay = QtWidgets.QVBoxLayout()
 
         # add mark trash spin and button and link it to a function
-        hlay = QtGui.QHBoxLayout()
-        self.MarkTrashSpin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.MarkTrashSpin = QtWidgets.QSpinBox()
         self.MarkTrashSpin.setMinimum(1)
         self.MarkTrashSpin.setMaximum(1000000)
         self.MarkTrashSpin.setValue(1000)
-        hlay.addWidget(QtGui.QLabel('Below'))
+        hlay.addWidget(QtWidgets.QLabel('Below'))
         hlay.addWidget(self.MarkTrashSpin)
-        MarkTrashBtn = QtGui.QPushButton('Mark Trash')
+        MarkTrashBtn = QtWidgets.QPushButton('Mark Trash')
         MarkTrashBtn.clicked.connect(self.TrashChans_proc)
         hlay.addWidget(MarkTrashBtn)
         vlay.addLayout(hlay)
 
         # add delete trash chans and link it to a function
-        btn = QtGui.QPushButton('Delete Trash Chans')
+        btn = QtWidgets.QPushButton('Delete Trash Chans')
         btn.clicked.connect(self.DeleteTrashChans_proc)
         vlay.addWidget(btn)
 
@@ -244,16 +255,16 @@ class SpikeSorter(QtGui.QMainWindow):
         toolslay.addWidget(grp)
 
         #-------------------------------------------------------------- FRAME 2
-        grp = QtGui.QGroupBox('Channel Plot Options', ToolsTab1)
-        vlay = QtGui.QVBoxLayout()
+        grp = QtWidgets.QGroupBox('Channel Plot Options', ToolsTab1)
+        vlay = QtWidgets.QVBoxLayout()
 
-        hlay = QtGui.QHBoxLayout()
-        self.ChanSelector = QtGui.QComboBox()
-        hlay.addWidget(QtGui.QLabel('Chan Selector'))
+        hlay = QtWidgets.QHBoxLayout()
+        self.ChanSelector = QtWidgets.QComboBox()
+        hlay.addWidget(QtWidgets.QLabel('Chan Selector'))
         hlay.addWidget(self.ChanSelector)
         vlay.addLayout(hlay)
 
-        PlotChanBtn = QtGui.QPushButton('Plot Chan')
+        PlotChanBtn = QtWidgets.QPushButton('Plot Chan')
         PlotChanBtn.clicked.connect(self.PlotChanProc)
         vlay.addWidget(PlotChanBtn)
 
@@ -262,26 +273,26 @@ class SpikeSorter(QtGui.QMainWindow):
 
         #------------------------------------------------------------ Group No3
 
-        grp = QtGui.QGroupBox('General Tools', ToolsTab1)
-        glay = QtGui.QGridLayout()
+        grp = QtWidgets.QGroupBox('General Tools', ToolsTab1)
+        glay = QtWidgets.QGridLayout()
 
-        setSettigsBtn = QtGui.QPushButton('Settings')
+        setSettigsBtn = QtWidgets.QPushButton('Settings')
         setSettigsBtn.clicked.connect(self.Settings)
         glay.addWidget(setSettigsBtn, 0, 0)
 
-        aboutBtn = QtGui.QPushButton('About')
+        aboutBtn = QtWidgets.QPushButton('About')
         aboutBtn.clicked.connect(self.About)
         glay.addWidget(aboutBtn, 0, 1)
 
-        closeH5FileBtn = QtGui.QPushButton('Close H5 File')
+        closeH5FileBtn = QtWidgets.QPushButton('Close H5 File')
         closeH5FileBtn.clicked.connect(self.CloseFile)
         glay.addWidget(closeH5FileBtn, 1, 0)
 
-        exitBtn = QtGui.QPushButton('Exit')
+        exitBtn = QtWidgets.QPushButton('Exit')
         exitBtn.clicked.connect(self.closeEvent)
         glay.addWidget(exitBtn, 1, 1)
 
-        convertFileBtn = QtGui.QPushButton('Convert File')
+        convertFileBtn = QtWidgets.QPushButton('Convert File')
         convertFileBtn.clicked.connect(BL.bin2h5)
         glay.addWidget(convertFileBtn, 2, 0)
 
@@ -289,7 +300,7 @@ class SpikeSorter(QtGui.QMainWindow):
         toolslay.addWidget(grp)
 
         # create an "About" Msg Box
-        self.AboutMsg = QtGui.QMessageBox(QtGui.QMessageBox.Information,
+        self.AboutMsg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Information,
                                           'About',
                                           u'Spyke Sorter v0.1\nHachi Manzur, 2012')
 
@@ -298,18 +309,18 @@ class SpikeSorter(QtGui.QMainWindow):
         ToolsTab1.setLayout(toolslay)
 
         #--------------------------------------------------- self.ToolsTab No 2
-        toolslay = QtGui.QVBoxLayout()
+        toolslay = QtWidgets.QVBoxLayout()
 
         # group No1
-        grp = QtGui.QGroupBox('Features Plot Opts', ToolsTab2)
-        vlay = QtGui.QVBoxLayout()
+        grp = QtWidgets.QGroupBox('Features Plot Opts', ToolsTab2)
+        vlay = QtWidgets.QVBoxLayout()
 
         # add X and Y features selection combobox
         items = ['PCA1', 'PCA2', 'PCA3', 'Slice1', 'Slice2', 'Time', 'Pk2Pk Amp',
                  'Peak', 'Valley', 'Energy', 'Peak Pt', 'Valley Pt']
-        self.XPlot = QtGui.QComboBox(grp)
-        self.YPlot = QtGui.QComboBox(grp)
-        self.ZPlot = QtGui.QComboBox(grp)
+        self.XPlot = QtWidgets.QComboBox(grp)
+        self.YPlot = QtWidgets.QComboBox(grp)
+        self.ZPlot = QtWidgets.QComboBox(grp)
         self.XPlot.addItems(items)
         self.YPlot.addItems(items)
         self.ZPlot.addItems(items)
@@ -318,49 +329,49 @@ class SpikeSorter(QtGui.QMainWindow):
         self.ZPlot.setCurrentIndex(2)
 
         # add the X axis combo box
-        hlay = QtGui.QHBoxLayout()
-        hlay.addWidget(QtGui.QLabel('X Axis Variable'))
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.addWidget(QtWidgets.QLabel('X Axis Variable'))
         hlay.addWidget(self.XPlot)
         vlay.addLayout(hlay)
 
         # add the Y axis combo box
-        hlay = QtGui.QHBoxLayout()
-        hlay.addWidget(QtGui.QLabel('Y Axis Variable'))
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.addWidget(QtWidgets.QLabel('Y Axis Variable'))
         hlay.addWidget(self.YPlot)
         vlay.addLayout(hlay)
 
         # add the Y axis combo box
-        hlay = QtGui.QHBoxLayout()
-        hlay.addWidget(QtGui.QLabel('Z Axis Variable'))
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.addWidget(QtWidgets.QLabel('Z Axis Variable'))
         hlay.addWidget(self.ZPlot)
         vlay.addLayout(hlay)
 
         # add a source of what to plot selection combo box
-        hlay = QtGui.QHBoxLayout()
-        hlay.addWidget(QtGui.QLabel('What to Plot ?'))
-        self.What2Plot = QtGui.QComboBox()
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.addWidget(QtWidgets.QLabel('What to Plot ?'))
+        self.What2Plot = QtWidgets.QComboBox()
         hlay.addWidget(self.What2Plot)
         vlay.addLayout(hlay)
 
         # add two slice selection spin box
-        hlay = QtGui.QHBoxLayout()
-        self.SliceSpBx1 = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.SliceSpBx1 = QtWidgets.QSpinBox()
         self.SliceSpBx1.setObjectName('Slice1')
         self.SliceSpBx1.valueChanged.connect(self.SliceDraw)
-        hlay.addWidget(QtGui.QLabel('Slice 1'))
+        hlay.addWidget(QtWidgets.QLabel('Slice 1'))
         hlay.addWidget(self.SliceSpBx1)
-        self.SliceSpBx2 = QtGui.QSpinBox()
+        self.SliceSpBx2 = QtWidgets.QSpinBox()
         self.SliceSpBx2.setObjectName('Slice2')
-        hlay.addWidget(QtGui.QLabel('Slice 2'))
+        hlay.addWidget(QtWidgets.QLabel('Slice 2'))
         self.SliceSpBx2.valueChanged.connect(self.SliceDraw)
         hlay.addWidget(self.SliceSpBx2)
         vlay.addLayout(hlay)
 
         # add a plot density check and a spin box to set the resolution
-        hlay = QtGui.QHBoxLayout()
-        self.PlotDensityCheck = QtGui.QCheckBox('Plot Density ?')
+        hlay = QtWidgets.QHBoxLayout()
+        self.PlotDensityCheck = QtWidgets.QCheckBox('Plot Density ?')
         hlay.addWidget(self.PlotDensityCheck)
-        self.PlotDensityBins = QtGui.QSpinBox()
+        self.PlotDensityBins = QtWidgets.QSpinBox()
         self.PlotDensityBins.setMinimum(50)
         self.PlotDensityBins.setMaximum(300)
         self.PlotDensityBins.setValue(100)
@@ -368,26 +379,26 @@ class SpikeSorter(QtGui.QMainWindow):
         vlay.addLayout(hlay)
 
         # plot only valid Wfs check widget
-        self.PlotValidsOnlyCheck = QtGui.QCheckBox('Plot Valids Only')
+        self.PlotValidsOnlyCheck = QtWidgets.QCheckBox('Plot Valids Only')
         self.PlotValidsOnlyCheck.setChecked(True)
         vlay.addWidget(self.PlotValidsOnlyCheck)
 
         # label with number of points
-        hlay = QtGui.QHBoxLayout()
-        self.nPtsLabel = QtGui.QLabel()
-        hlay.addWidget(QtGui.QLabel('NPoints'))
+        hlay = QtWidgets.QHBoxLayout()
+        self.nPtsLabel = QtWidgets.QLabel()
+        hlay.addWidget(QtWidgets.QLabel('NPoints'))
         hlay.addWidget(self.nPtsLabel)
         vlay.addLayout(hlay)
 
         # number of spikes spin box
-        hlay = QtGui.QHBoxLayout()
-        self.nPtsSpin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.nPtsSpin = QtWidgets.QSpinBox()
         self.nPtsSpin.setRange(10000, 200000)
         self.nPtsSpin.setSingleStep(10000)
         hlay.addWidget(self.nPtsSpin)
 
         # number of spikes slider
-        self.nPtsSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.nPtsSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.nPtsSlider.setRange(10000, 200000)
         self.nPtsSlider.setTickInterval(5000)
         self.nPtsSlider.setSingleStep(5000)
@@ -403,14 +414,14 @@ class SpikeSorter(QtGui.QMainWindow):
         self.nPtsSlider.setValue(50000)
         vlay.addLayout(hlay)
 
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         # plot features btn and funcion connection
-        self.PlotFeaturesBtn = QtGui.QPushButton('Plot 2D', grp)
+        self.PlotFeaturesBtn = QtWidgets.QPushButton('Plot 2D', grp)
         self.PlotFeaturesBtn.clicked.connect(self.PlotFeatures)
         hlay.addWidget(self.PlotFeaturesBtn)
 
         # plot features btn and funcion connection
-        self.Plot3DBtn = QtGui.QPushButton('Plot 3D', grp)
+        self.Plot3DBtn = QtWidgets.QPushButton('Plot 3D', grp)
         self.Plot3DBtn.clicked.connect(self.Plot3DFeatures)
         hlay.addWidget(self.Plot3DBtn)
         vlay.addLayout(hlay)
@@ -420,19 +431,19 @@ class SpikeSorter(QtGui.QMainWindow):
         toolslay.addWidget(grp)
 
         #----------------------------------------------------------- group No 2
-        grp = QtGui.QGroupBox('Raw Waveforms Opts')
-        vlay = QtGui.QVBoxLayout()
+        grp = QtWidgets.QGroupBox('Raw Waveforms Opts')
+        vlay = QtWidgets.QVBoxLayout()
 
         # number of spikes spin box
-        hlay = QtGui.QHBoxLayout()
-        self.NSpikesSpin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.NSpikesSpin = QtWidgets.QSpinBox()
         self.NSpikesSpin.setMaximum(5000)
         self.NSpikesSpin.setMinimum(100)
         self.NSpikesSpin.setSingleStep(100)
         hlay.addWidget(self.NSpikesSpin)
 
         # number of spikes slider
-        self.NSpikesSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.NSpikesSlider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.NSpikesSlider.setMaximum(5000)
         self.NSpikesSlider.setMinimum(100)
         self.NSpikesSlider.setSingleStep(100)
@@ -449,18 +460,18 @@ class SpikeSorter(QtGui.QMainWindow):
         vlay.addLayout(hlay)
 
         # add axes limit spin box
-        hlay = QtGui.QHBoxLayout()
-        self.WaveAxYLim_Spin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.WaveAxYLim_Spin = QtWidgets.QSpinBox()
         self.WaveAxYLim_Spin.setRange(0, 10000)
         self.WaveAxYLim_Spin.setValue(1000)
         self.WaveAxYLim_Spin.setSingleStep(100)
         self.WaveAxYLim_Spin.editingFinished.connect(self.SetWfPlotLim_proc)
-        hlay.addWidget(QtGui.QLabel('Axes Y Lim'))
+        hlay.addWidget(QtWidgets.QLabel('Axes Y Lim'))
         hlay.addWidget(self.WaveAxYLim_Spin)
         vlay.addLayout(hlay)
 
         # create a "plot waveforms" check widget
-        self.PlotWaveformsCheck = QtGui.QCheckBox('Plot Raw Waveforms ?')
+        self.PlotWaveformsCheck = QtWidgets.QCheckBox('Plot Raw Waveforms ?')
         vlay.addWidget(self.PlotWaveformsCheck)
 
         grp.setLayout(vlay)
@@ -468,19 +479,19 @@ class SpikeSorter(QtGui.QMainWindow):
         toolslay.addWidget(grp)
 
         # Automatic clustering box
-        #w = QtGui.QWidget()
-        autoClustBtn = QtGui.QPushButton('Automatic Clustering')
-        autoClustBtn.clicked.connect(autoclust.show)
-        toolslay.addWidget(autoClustBtn)
+        #w = QtWidgets.QWidget()
+        #autoClustBtn = QtWidgets.QPushButton('Automatic Clustering')
+        #autoClustBtn.clicked.connect(autoclust.show)
+        #toolslay.addWidget(autoClustBtn)
 
-        hlay = QtGui.QHBoxLayout()
-        mergeUnitsBtn = QtGui.QPushButton('Merge Units')
+        hlay = QtWidgets.QHBoxLayout()
+        mergeUnitsBtn = QtWidgets.QPushButton('Merge Units')
         self.MergeUnitsWidget = helper_widgets.MergeUnitsWidget()
         self.MergeUnitsWidget.AcceptBtn.clicked.connect(self.MergeUnits_proc)
         mergeUnitsBtn.clicked.connect(self.CallMergeUnits_proc)
         hlay.addWidget(mergeUnitsBtn)
 
-        moveUnitsBtn = QtGui.QPushButton('Move Units')
+        moveUnitsBtn = QtWidgets.QPushButton('Move Units')
         self.MoveUnitsWidget = helper_widgets.MoveUnitsWidget()
         self.MoveUnitsWidget.AcceptBtn.clicked.connect(self.MoveUnits_proc)
         moveUnitsBtn.clicked.connect(self.CallMoveUnits_proc)
@@ -491,12 +502,12 @@ class SpikeSorter(QtGui.QMainWindow):
         #----------------------------------------------- CHANNEL METAINFO GROUP
 
         # button to reset a channel
-        btn = QtGui.QPushButton('Reset Channel')
+        btn = QtWidgets.QPushButton('Reset Channel')
         btn.clicked.connect(self.ResetChan_proc)
         toolslay.addWidget(btn)
 
         # button to reset a channel
-        btn = QtGui.QPushButton('Autocorr Opts')
+        btn = QtWidgets.QPushButton('Autocorr Opts')
         btn.clicked.connect(self.AutocorrOpts)
         toolslay.addWidget(btn)
 
@@ -508,10 +519,10 @@ class SpikeSorter(QtGui.QMainWindow):
         self.OverviewTab1 = {}
         self.OverviewTab2 = {}
 
-        self.MainFigTab = QtGui.QTabWidget()
+        self.MainFigTab = QtWidgets.QTabWidget()
         self.MainFigTab.currentChanged.connect(self.MainFigTabProc)
-        self.OverviewTab1['MainWidget'] = QtGui.QWidget(self.MainFigTab)
-        hlay = QtGui.QHBoxLayout(self.OverviewTab1['MainWidget'])
+        self.OverviewTab1['MainWidget'] = QtWidgets.QWidget(self.MainFigTab)
+        hlay = QtWidgets.QHBoxLayout(self.OverviewTab1['MainWidget'])
 
         self.MainFigTab.addTab(self.OverviewTab1['MainWidget'], 'Channels Overview')
 
@@ -520,18 +531,18 @@ class SpikeSorter(QtGui.QMainWindow):
         self.OverviewTab1['Figure'].figure.set_facecolor('k')
         self.OverviewTab1['Toolbar'] = matplotlib_widgets.NavToolbar(self.OverviewTab1['Figure'], self.OverviewTab1['MainWidget'])
         self.OverviewTab1['Toolbar'].setIconSize(QtCore.QSize(15, 15))
-        vlay = QtGui.QVBoxLayout()
+        vlay = QtWidgets.QVBoxLayout()
         vlay.addWidget(self.OverviewTab1['Figure'])
         vlay.addWidget(self.OverviewTab1['Toolbar'])
-        vlay.setMargin(0)
+        vlay.setContentsMargins(0, 0, 0, 0)
         vlay.setSpacing(1)
         hlay.addLayout(vlay)
-        hlay.setMargin(0)
+        hlay.setContentsMargins(0, 0, 0, 0)
         hlay.setSpacing(1)
 
         #------------------------------------------------ OVERVIEW TABLE WIDGET
-        self.OverviewTab2['MainWidget'] = QtGui.QWidget(self.MainFigTab)
-        self.OverviewTab2['OverviewTable'] = QtGui.QTableWidget(0, 6, self.OverviewTab2['MainWidget'])
+        self.OverviewTab2['MainWidget'] = QtWidgets.QWidget(self.MainFigTab)
+        self.OverviewTab2['OverviewTable'] = QtWidgets.QTableWidget(0, 6, self.OverviewTab2['MainWidget'])
         self.OverviewTab2['OverviewTable'].setAlternatingRowColors(True)
         self.OverviewTab2['OverviewTable'].setFont(QtGui.QFont('sans', 8))
         labels = ['Count', 'isTrash', 'MultiUnit?', 'Comments', 'Unsorted', 'Valid']
@@ -545,22 +556,22 @@ class SpikeSorter(QtGui.QMainWindow):
         vHeader = self.OverviewTab2['OverviewTable'].verticalHeader()
         vHeader.sectionClicked.connect(self.TableRowChanged_proc)
 
-        vlay = QtGui.QVBoxLayout(self.OverviewTab2['MainWidget'])
+        vlay = QtWidgets.QVBoxLayout(self.OverviewTab2['MainWidget'])
         vlay.addWidget(self.OverviewTab2['OverviewTable'])
 
         # add a log entry browser
-        grp = QtGui.QGroupBox('Log Browser')
+        grp = QtWidgets.QGroupBox('Log Browser')
         grp.setMaximumHeight(100)
-        hlay = QtGui.QHBoxLayout()
-        self.LogCombo = QtGui.QComboBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.LogCombo = QtWidgets.QComboBox()
         self.LogCombo.setMinimumWidth(200)
         #self.LogCombo.setMinimumHeight(20)
         self.LogCombo.currentIndexChanged.connect(self.SetLogText_proc)
         hlay.addWidget(self.LogCombo)
-        self.LogTextBrowser = QtGui.QTextBrowser()
+        self.LogTextBrowser = QtWidgets.QTextBrowser()
         #self.LogTextBrowser.setMaximumHeight(40)
         hlay.addWidget(self.LogTextBrowser)
-        hlay.setMargin(0)
+        hlay.setContentsMargins(0, 0, 0, 0)
         hlay.setSpacing(1)
         grp.setLayout(hlay)
         vlay.addWidget(grp)
@@ -569,33 +580,33 @@ class SpikeSorter(QtGui.QMainWindow):
 
         #---------------------------------------------------------- CHANNEL TAB
         self.ChanTab = {}
-        self.ChanTab['MainWidget'] = QtGui.QWidget()
+        self.ChanTab['MainWidget'] = QtWidgets.QWidget()
         self.MainFigTab.addTab(self.ChanTab['MainWidget'], 'Channel Tab')
 
-        mainHLay = QtGui.QHBoxLayout()
+        mainHLay = QtWidgets.QHBoxLayout()
 
         #------------------------------------------------- RAW WAVEFORMS WIDGET
         # create the mpl widget to plot the raw waveforms
-        vlay = QtGui.QVBoxLayout()
+        vlay = QtWidgets.QVBoxLayout()
 
         # buttons and controls on top of raw waveforms plot
-        hlay = QtGui.QHBoxLayout()
-        self.NUnitsSpin = QtGui.QSpinBox()
+        hlay = QtWidgets.QHBoxLayout()
+        self.NUnitsSpin = QtWidgets.QSpinBox()
         self.NUnitsSpin.setMaximumHeight(20)
         self.NUnitsSpin.setMinimum(1)
         self.NUnitsSpin.setMaximum(10000)
         self.NUnitsSpin.setValue(1)
 
-        TrimBtn = QtGui.QPushButton('Trim Waveforms')
+        TrimBtn = QtWidgets.QPushButton('Trim Waveforms')
         TrimBtn.clicked.connect(self.ActivateTrimWaveforms_proc)
         TrimBtn.setMaximumHeight(20)
 
-        CleanBtn = QtGui.QPushButton('Redraw')
+        CleanBtn = QtWidgets.QPushButton('Redraw')
         CleanBtn.setMaximumHeight(20)
 
         CleanBtn.clicked.connect(self.CleanWavesFigure_proc)
         hlay.addStretch(1)
-        lbl = QtGui.QLabel('Waveforms2Plot:')
+        lbl = QtWidgets.QLabel('Waveforms2Plot:')
         lbl.setMaximumHeight(20)
         hlay.addWidget(lbl)
         hlay.addWidget(self.NUnitsSpin)
@@ -605,7 +616,7 @@ class SpikeSorter(QtGui.QMainWindow):
         vlay.addLayout(hlay)
 
         #------------------------------------------- waveforms plot and toolbar
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         self.ChanTab['WavesFigure'] = matplotlib_widgets.MplWidget()
         self.ChanTab['WavesFigure'].figure.set_facecolor('k')
         self.ChanTab['WaveToolbar'] = matplotlib_widgets.NavToolbar(self.ChanTab['WavesFigure'],
@@ -616,14 +627,14 @@ class SpikeSorter(QtGui.QMainWindow):
         self.ChanTab['WaveToolbar'].setMaximumWidth(30)
         hlay.addWidget(self.ChanTab['WavesFigure'])
         hlay.addWidget(self.ChanTab['WaveToolbar'])
-        hlay.setMargin(0)
+        hlay.setContentsMargins(0, 0, 0, 0)
         hlay.setSpacing(1)
         vlay.addLayout(hlay)
 
         #------------------------------------------------------ UNIT TABS WIDGET
-        self.ChanTab['UnitTabsWidget'] = QtGui.QTabWidget()
+        self.ChanTab['UnitTabsWidget'] = QtWidgets.QTabWidget()
         self.ChanTab['UnitTabBarWidget'] = self.ChanTab['UnitTabsWidget'].tabBar()
-        self.ChanTab['UnitTabsWidget'].setMaximumHeight(QtGui.QApplication.desktop().availableGeometry().height() / 4)
+        self.ChanTab['UnitTabsWidget'].setMaximumHeight(int(QtWidgets.QApplication.desktop().availableGeometry().height() / 4))
         self.ChanTab['UnitFigures'] = {}
         self.ChanTab['DelUnitBtns'] = {}
         self.ChanTab['UnitCountLabel'] = {}
@@ -658,51 +669,51 @@ class SpikeSorter(QtGui.QMainWindow):
         wavesfig.canvas.mpl_connect('draw_event', self.draw_callback)
 
         #------------------------------------------------- FEATURES PLOT WIDGET
-        mainRightLay = QtGui.QVBoxLayout()
+        mainRightLay = QtWidgets.QVBoxLayout()
 
-        tab = QtGui.QTabWidget()
+        tab = QtWidgets.QTabWidget()
 
-        widget = QtGui.QWidget()
+        widget = QtWidgets.QWidget()
         # function buttons on top of the features plot:
 
-        vlay = QtGui.QVBoxLayout(widget)
+        vlay = QtWidgets.QVBoxLayout(widget)
 
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         hlay.addStretch(1)
 
-        self.AddUnitBtn = QtGui.QPushButton('Add Unit')
+        self.AddUnitBtn = QtWidgets.QPushButton('Add Unit')
         self.AddUnitBtn.setMaximumHeight(20)
         self.AddUnitBtn.clicked.connect(self.AddUnit_proc)
         hlay.addWidget(self.AddUnitBtn)
 
         # add a "keep" button
-        self.KeepBtn = QtGui.QPushButton('Keep')
+        self.KeepBtn = QtWidgets.QPushButton('Keep')
         self.KeepBtn.setMaximumHeight(20)
         self.KeepBtn.setToolTip('Create new unit (only when All waveforms or Unsorted are plotted)')
         self.KeepBtn.clicked.connect(self.Keep_proc)
         hlay.addWidget(self.KeepBtn)
 
         # add an "add region" button
-        self.AddRegionBtn = QtGui.QPushButton('Add Region')
+        self.AddRegionBtn = QtWidgets.QPushButton('Add Region')
         self.AddRegionBtn.setMaximumHeight(20)
         self.AddRegionBtn.setToolTip('Add waveforms to the current unit')
         self.AddRegionBtn.clicked.connect(self.AddRegion_proc)
         hlay.addWidget(self.AddRegionBtn)
 
         # add a "remove region" button
-        self.RemoveRegionBtn = QtGui.QPushButton('Remove Region')
+        self.RemoveRegionBtn = QtWidgets.QPushButton('Remove Region')
         self.RemoveRegionBtn.setMaximumHeight(20)
         self.RemoveRegionBtn.clicked.connect(self.RemoveRegion_proc)
         hlay.addWidget(self.RemoveRegionBtn)
 
         # "set valid waveforms" button
-        self.ValidWFBtn = QtGui.QPushButton('Set Valid WFs')
+        self.ValidWFBtn = QtWidgets.QPushButton('Set Valid WFs')
         self.ValidWFBtn.setMaximumHeight(20)
         self.ValidWFBtn.clicked.connect(self.ValidateWFs_proc)
         hlay.addWidget(self.ValidWFBtn)
 
         # "set valid waveforms" button
-        self.ReplotDensityBtn = QtGui.QPushButton('Replot Density')
+        self.ReplotDensityBtn = QtWidgets.QPushButton('Replot Density')
         self.ReplotDensityBtn.setMaximumHeight(20)
         self.ReplotDensityBtn.clicked.connect(self.ReplotDensity_proc)
         hlay.addWidget(self.ReplotDensityBtn)
@@ -721,7 +732,7 @@ class SpikeSorter(QtGui.QMainWindow):
         vlay.addWidget(self.ChanTab['FeaturesFig'])
         vlay.addWidget(self.ChanTab['FeaturesFigNtb'])
 
-        vlay.setMargin(0)
+        vlay.setContentsMargins(0, 0, 0, 0)
         vlay.setSpacing(1)
 
         tab.addTab(widget, '2D')
@@ -737,7 +748,7 @@ class SpikeSorter(QtGui.QMainWindow):
         self.TimeScroll['Figure'] = matplotlib_widgets.MplWidget()
         self.TimeScroll['Figure'].figure.set_facecolor('k')
         self.TimeScroll['DrawFigCID'] = self.TimeScroll['Figure'].figure.canvas.mpl_connect('draw_event', self.DrawScrollFig_Func)
-        self.TimeScroll['Figure'].setMaximumHeight(QtGui.QApplication.desktop().availableGeometry().height() / 6)
+        self.TimeScroll['Figure'].setMaximumHeight(int(QtWidgets.QApplication.desktop().availableGeometry().height() / 6))
         self.TimeScroll['Ax'] = self.TimeScroll['Figure'].figure.add_subplot(111)
         self.TimeScroll['Ax'].set_facecolor('k')
         self.TimeScroll['Ax'].set_ylim(-1500, 1500)
@@ -749,24 +760,24 @@ class SpikeSorter(QtGui.QMainWindow):
         self.TimeScroll['Figure'].figure.canvas.draw()
 
         # add a vertical zoom slider
-        self.TimeScroll['VZoom'] = QtGui.QSlider(QtCore.Qt.Vertical)
-        self.TimeScroll['VZoom'].setMaximumHeight(QtGui.QApplication.desktop().availableGeometry().height() / 6)
+        self.TimeScroll['VZoom'] = QtWidgets.QSlider(QtCore.Qt.Vertical)
+        self.TimeScroll['VZoom'].setMaximumHeight(int(QtWidgets.QApplication.desktop().availableGeometry().height() / 6))
         self.TimeScroll['VZoom'].setMinimum(100)
         self.TimeScroll['VZoom'].setMaximum(5000)
         self.TimeScroll['VZoom'].setValue(1000)
         self.TimeScroll['VZoom'].valueChanged.connect(self.VZoom_Func)
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         hlay.addWidget(self.TimeScroll['VZoom'])
         hlay.addWidget(self.TimeScroll['Figure'])
         mainRightLay.addLayout(hlay)
 
         # add an horizontal zoom slider
-        self.TimeScroll['HZoom'] = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.TimeScroll['HZoom'] = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.TimeScroll['HZoom'].setRange(5, 5000)
         self.TimeScroll['HZoom'].setValue(500)
         self.TimeScroll['HZoom'].setSingleStep(5)
         self.TimeScroll['HZoom'].valueChanged.connect(self.HZoom_Func)
-        self.TimeScroll['HZoomSpin'] = QtGui.QSpinBox()
+        self.TimeScroll['HZoomSpin'] = QtWidgets.QSpinBox()
         self.TimeScroll['HZoomSpin'].setMinimumWidth(80)
         self.TimeScroll['HZoomSpin'].setMaximumHeight(20)
         self.TimeScroll['HZoomSpin'].setRange(5, 5000)
@@ -774,42 +785,42 @@ class SpikeSorter(QtGui.QMainWindow):
         self.TimeScroll['HZoomSpin'].setSingleStep(10)
         self.TimeScroll['HZoomSpin'].valueChanged.connect(self.TimeScroll['HZoom'].setValue)
         self.TimeScroll['HZoom'].valueChanged.connect(self.TimeScroll['HZoomSpin'].setValue)
-        hlay = QtGui.QHBoxLayout()
-        hlay.addWidget(QtGui.QLabel('H Span '))
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.addWidget(QtWidgets.QLabel('H Span '))
         hlay.addWidget(self.TimeScroll['HZoomSpin'])
         hlay.addWidget(self.TimeScroll['HZoom'])
         mainRightLay.addLayout(hlay)
 
         # add a time slider
-        self.TimeScroll['HScroll'] = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.TimeScroll['HScroll'] = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.TimeScroll['HScroll'].setRange(0, 3000000)
-        self.TimeScroll['HScroll'].setSingleStep(self.TimeScroll['HZoom'].value() / 10)
+        self.TimeScroll['HScroll'].setSingleStep(int(self.TimeScroll['HZoom'].value() / 10))
         self.TimeScroll['HScroll'].valueChanged.connect(self.HScroll_Func)
-        self.TimeScroll['HSpin'] = QtGui.QSpinBox()
+        self.TimeScroll['HSpin'] = QtWidgets.QSpinBox()
         self.TimeScroll['HSpin'].setRange(0, 3000000)
         self.TimeScroll['HSpin'].setMinimumWidth(80)
         self.TimeScroll['HSpin'].setMaximumHeight(20)
         self.TimeScroll['HSpin'].valueChanged.connect(self.TimeScroll['HScroll'].setValue)
         self.TimeScroll['HScroll'].valueChanged.connect(self.TimeScroll['HSpin'].setValue)
-        hlay = QtGui.QHBoxLayout()
-        hlay.addWidget(QtGui.QLabel('H Scroll'))
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.addWidget(QtWidgets.QLabel('H Scroll'))
         hlay.addWidget(self.TimeScroll['HSpin'])
         hlay.addWidget(self.TimeScroll['HScroll'])
         mainRightLay.addLayout(hlay)
 
-        mainRightLay.setMargin(0)
+        mainRightLay.setContentsMargins(0, 0, 0, 0)
         mainRightLay.setSpacing(1)
         # add the widget to the main horizontal layout
         mainHLay.addLayout(mainRightLay)
-        mainHLay.setMargin(1)
+        mainHLay.setContentsMargins(1, 1, 1, 1)
         self.ChanTab['MainWidget'].setLayout(mainHLay)
 
         # create a generic Msg box
-        self.MsgBox = QtGui.QMessageBox()
+        self.MsgBox = QtWidgets.QMessageBox()
 
         # if running in linux set a certain style for the buttons and widgets
         if sys.platform == 'linux2':
-            QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Plastique'))
+            QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create('Plastique'))
 
         # add the main tabbed figures widget to the main splitter
         split1.addWidget(self.MainFigTab)
@@ -829,7 +840,7 @@ class SpikeSorter(QtGui.QMainWindow):
     #__________________________________________________________________________
     def SaveOverviewFig_proc(self):
         if self.H5FileLoaded:
-            fname = str(QtGui.QFileDialog.getSaveFileName(directory=self.h5file.filename[0:-3] + '_sorted.png'))
+            fname = str(QtWidgets.QFileDialog.getSaveFileName(directory=self.h5file.filename[0:-3] + '_sorted.png'))
             if fname:
                 self.OverviewTab1['Figure'].figure.savefig(fname,
                                                            dpi=300,
@@ -939,16 +950,16 @@ class SpikeSorter(QtGui.QMainWindow):
         waveforms and timestamps '''
 
         # try to load an h5 file
-        if settings.WorkingDir:
-            d = settings.WorkingDir
-        else:
-            d = ''
+        #if settings.WorkingDir:
+        #    d = settings.WorkingDir
+        #else:
+            #d = ''
 
         if not h5file:
-            h5file = str(QtGui.QFileDialog.getOpenFileName(parent=self,
+            h5file = QtWidgets.QFileDialog.getOpenFileName(parent=self,
                                                       caption='Select an H5 File',
-                                                      directory=d,
-                                                      filter='*.h5'))
+                                                      directory="",
+                                                      filter='*.h5')[0]
 
         # in case there is not file selected
         if not h5file:
@@ -962,7 +973,7 @@ class SpikeSorter(QtGui.QMainWindow):
         try:
             self.h5file = tables.open_file(str(h5file), mode='r+')
         except:
-            self.MsgBox.setIcon(QtGui.QMessageBox.Warning)
+            self.MsgBox.setIcon(QtWidgets.QMessageBox.Warning)
             self.MsgBox.setText('There was a problem opening the H5 file')
             self.MsgBox.setWindowTitle('Warning')
             self.MsgBox.show()
@@ -1103,27 +1114,27 @@ class SpikeSorter(QtGui.QMainWindow):
             self.OverviewTab2['OverviewTable'].setRowHeight(j, 20)
 
             # add an event count
-            self.OverviewTab2['OverviewTable'].setItem(j, 0, QtGui.QTableWidgetItem(str(k.TimeStamp.nrows)))
+            self.OverviewTab2['OverviewTable'].setItem(j, 0, QtWidgets.QTableWidgetItem(str(k.TimeStamp.nrows)))
 
             # add an "isTrash" checkbox
-            check = QtGui.QCheckBox()
+            check = QtWidgets.QCheckBox()
             check.setProperty('Data', self.ChansList[j])
             check.stateChanged.connect(self.setTrash_proc)
             self.OverviewTab2['OverviewTable'].setCellWidget(j, 1, check)
 
             # add an "isMultinunit" checkbox
-            isMultiunitCheck = QtGui.QCheckBox()
+            isMultiunitCheck = QtWidgets.QCheckBox()
             isMultiunitCheck.setObjectName(k._v_name)
             isMultiunitCheck.stateChanged.connect(self.isMultiunit_proc)
             self.OverviewTab2['OverviewTable'].setCellWidget(j, 2, isMultiunitCheck)
 
             # add information about unsorted units
             if k.__contains__('Unsorted'):
-                self.OverviewTab2['OverviewTable'].setItem(j, 4, QtGui.QTableWidgetItem(str(k.Unsorted.nrows)))
+                self.OverviewTab2['OverviewTable'].setItem(j, 4, QtWidgets.QTableWidgetItem(str(k.Unsorted.nrows)))
 
             # add information about valif waveforms
             if k.__contains__('ValidWFs'):
-                self.OverviewTab2['OverviewTable'].setItem(j, 5, QtGui.QTableWidgetItem(str(k.ValidWFs.nrows)))
+                self.OverviewTab2['OverviewTable'].setItem(j, 5, QtWidgets.QTableWidgetItem(str(k.ValidWFs.nrows)))
 
             # add info about each unit
             units = [m for m in k.__members__ if re.search('Unit[0-9]{2}', m)]  # obtain unit names
@@ -1135,13 +1146,13 @@ class SpikeSorter(QtGui.QMainWindow):
                         nCols = self.OverviewTab2['OverviewTable'].columnCount()
                         self.OverviewTab2['OverviewTable'].setColumnWidth(nCols - 1, 65)
                         self.OverviewTab2['OverviewTable'].setHorizontalHeaderItem(nCols - 1,
-                                                                                   QtGui.QTableWidgetItem('Unit%02d' % m))
+                                                                                   QtWidgets.QTableWidgetItem('Unit%02d' % m))
 
                     self.OverviewTab2['OverviewTable'].setItem(j, m + 6,
-                                                               QtGui.QTableWidgetItem(str(k.__getattr__(n).Indx.nrows)))
+                                                               QtWidgets.QTableWidgetItem(str(k.__getattr__(n).Indx.nrows)))
 
             # Create the axes to plot the waveforms
-            self.OverviewTab1['Figure'].figure.add_subplot(figrows, 10, j + 1)
+            self.OverviewTab1['Figure'].figure.add_subplot(int(figrows), 10, int(j + 1))
             self.OverviewTab1['Figure'].figure.axes[j].set_yticks([], [])  # eliminate the ticks to have more space
             self.OverviewTab1['Figure'].figure.axes[j].set_xticks([], [])  # eliminate the ticks to have more space
             self.OverviewTab1['Figure'].figure.axes[j].set_axis_off()
@@ -1335,11 +1346,12 @@ class SpikeSorter(QtGui.QMainWindow):
         self.MainFigTab.setTabText(2, 'Chan %02d' % self.CurChan)
 
         # calculate PCA
-        pc = PCA(self.CurWaveforms)
+        pc = PCA(n_components=3)
+        pc.fit(self.CurWaveforms)
 
         # put data in a KDTree to easily calculate distance with the cursor
-        self.XYData = cKDTree(pc.Y[:, 0:2], 1000)
-        self.ChanTab['PCA'] = pc.Y
+        self.XYData = cKDTree(pc[:, 0:2], 1000)
+        self.ChanTab['PCA'] = pc
 
         # set the internal variable to true
         self.ChanPlotted = True
@@ -1535,8 +1547,7 @@ class SpikeSorter(QtGui.QMainWindow):
 
     #__________________________________________________________________________
     def AutocorrOpts(self):
-        if autocorropts.edit() == 1:
-            pass
+        autocorropts.show()
 
     #__________________________________________________________________________
     def About(self):
@@ -1787,7 +1798,10 @@ class SpikeSorter(QtGui.QMainWindow):
                              color=[.5, .5, .5], label='data_Unsorted')
 
                 unit = re.search('(?<=Unit)[0-9]{2}', leaf._v_name)
+                
                 if unit:
+                    uIndx = int(unit.group())
+                    uColor = tuple(self.UnitColors[uIndx])
                     # select some units to plot
                     if leaf.Indx.nrows > self.nPtsSpin.value():
                         indx = leaf.Indx.read(0, leaf.Indx.nrows, leaf.Indx.nrows / self.nPtsSpin.value())
@@ -1796,8 +1810,8 @@ class SpikeSorter(QtGui.QMainWindow):
 
                     ax1.plot(x[indx], y[indx], ',', label='data_' + leaf._v_name,
                              rasterized=True,
-                             color=self.UnitColors[int(unit.group()), :],
-                             mec=self.UnitColors[int(unit.group()), :])
+                             color=uColor,
+                             mec=uColor)
 
                     # add unit to the tab widget
                     self.UnitsTable_AddUnit(leaf._v_name)
@@ -1806,7 +1820,10 @@ class SpikeSorter(QtGui.QMainWindow):
             nodes = self.h5file.list_nodes(self.CurNodeName)
             for leaf in nodes:
                 unit = re.search('(?<=Unit)[0-9]{2}', leaf._v_name)
+                
                 if unit:
+                    uIndx = int(unit.group())
+                    uColor = tuple(self.UnitColors[uIndx])
                     # select some units to plot
                     if leaf.Indx.nrows > self.nPtsSpin.value():
                         indx = leaf.Indx.read(0, leaf.Indx.nrows, leaf.Indx.nrows / self.nPtsSpin.value())
@@ -1815,8 +1832,8 @@ class SpikeSorter(QtGui.QMainWindow):
 
                     ax1.plot(x[indx, :], y[indx, :], ',', label='data_' + leaf._v_name,
                              rasterized=True,
-                             color=self.UnitColors[int(unit.group()), :],
-                             mec=self.UnitColors[int(unit.group()), :],
+                             color=uColor,
+                             mec=uColor,
                              zorder=10)
 
                     # add unit to the tab widget
@@ -1836,8 +1853,11 @@ class SpikeSorter(QtGui.QMainWindow):
                      zorder=10)
 
         # plot a specific unit
+        
         elif re.search('Unit', What2Plot):
             unit = re.search('(?<=Unit)[0-9]{0,2}', What2Plot).group()
+            uIndx = int(unit.group())
+            uColor = tuple(self.UnitColors[uIndx])
             lx = len(x)
             # select some units to plot
             if lx > self.nPtsSpin.value():
@@ -1847,8 +1867,8 @@ class SpikeSorter(QtGui.QMainWindow):
 
             ax1.plot(x[indx], y[indx], ',', label='data_' + What2Plot,
                      rasterized=True,
-                     color=self.UnitColors[int(unit), :],
-                     mec=self.UnitColors[int(unit), :],
+                     color=uColor,
+                     mec=uColor,
                      zorder=10)
 
             # add unit to the tab widget
@@ -2127,7 +2147,7 @@ class SpikeSorter(QtGui.QMainWindow):
 
         # in case no points were inside the axes
         if len(p) == 0:
-            self.MsgBox.setIcon(QtGui.QMessageBox.Warning)
+            self.MsgBox.setIcon(QtWidgets.QMessageBox.Warning)
             self.MsgBox.setText('There were no selected points')
             self.MsgBox.setwindowTitle('Warning')
             self.MsgBox.show()
@@ -2155,7 +2175,7 @@ class SpikeSorter(QtGui.QMainWindow):
 
         # update the information on the overview table
         row = self.ChanSelector.currentIndex()
-        item = QtGui.QTableWidgetItem(str(self.ValidWFs.size))
+        item = QtWidgets.QTableWidgetItem(str(self.ValidWFs.size))
         self.OverviewTab2['OverviewTable'].takeItem(row, 5)
         self.OverviewTab2['OverviewTable'].setItem(row, 5, item)
 
@@ -2343,7 +2363,7 @@ class SpikeSorter(QtGui.QMainWindow):
         # update the information in the overview table
         row = self.ChanSelector.currentIndex()
         self.OverviewTab2['OverviewTable'].takeItem(row, self.CurUnit + 6)
-        lbl = QtGui.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
+        lbl = QtWidgets.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
         self.OverviewTab2['OverviewTable'].setItem(row, self.CurUnit + 6, lbl)
 
         # update the information on the unit label
@@ -2616,7 +2636,7 @@ class SpikeSorter(QtGui.QMainWindow):
 
         # in case there were no points selected
         if len(p) == 0:
-            self.MsgBox.setIcon(QtGui.QMessageBox.Warning)
+            self.MsgBox.setIcon(QtWidgets.QMessageBox.Warning)
             self.MsgBox.setText('There were no selected points')
             self.MsgBox.setwindowTitle('Warning')
             self.MsgBox.show()
@@ -2787,7 +2807,7 @@ class SpikeSorter(QtGui.QMainWindow):
         # update the information in the overview table
         row = self.ChanSelector.currentIndex()
         self.OverviewTab2['OverviewTable'].takeItem(row, self.CurUnit + 6)
-        lbl = QtGui.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
+        lbl = QtWidgets.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
         self.OverviewTab2['OverviewTable'].setItem(row, self.CurUnit + 6, lbl)
 
         # update the information on the unit label
@@ -2875,7 +2895,7 @@ class SpikeSorter(QtGui.QMainWindow):
         # update the information in the overview table
         row = self.ChanSelector.currentIndex()
         self.OverviewTab2['OverviewTable'].takeItem(row, self.CurUnit + 6)
-        lbl = QtGui.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
+        lbl = QtWidgets.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
         self.OverviewTab2['OverviewTable'].setItem(row, self.CurUnit + 6, lbl)
 
         # update the information on the unit label
@@ -2938,7 +2958,7 @@ class SpikeSorter(QtGui.QMainWindow):
         # update the information in the overview table
         row = self.ChanSelector.currentIndex()
         self.OverviewTab2['OverviewTable'].takeItem(row, self.CurUnit + 6)
-        lbl = QtGui.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
+        lbl = QtWidgets.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, self.CurUnitName).Indx.nrows))
         self.OverviewTab2['OverviewTable'].setItem(row, self.CurUnit + 6, lbl)
 
         # update the information on the unit label
@@ -2970,10 +2990,10 @@ class SpikeSorter(QtGui.QMainWindow):
         self.CurUnitName = unitName
 
         # create a widget and a layout
-        widget = QtGui.QWidget()
-        vlay = QtGui.QVBoxLayout()
+        widget = QtWidgets.QWidget()
+        vlay = QtWidgets.QVBoxLayout()
         vlay.setSpacing(2)
-        vlay.setMargin(0)
+        vlay.setContentsMargins(0, 0, 0, 0)
 
         # get a unit number
         unitNo = int(re.search('(?<=Unit)[0-9]{2}', unitName).group())
@@ -2982,10 +3002,10 @@ class SpikeSorter(QtGui.QMainWindow):
         self.UnitsList.append(unitNo)
 
         # create a btn to change unit color
-        hlay = QtGui.QHBoxLayout()
-        hlay.setMargin(0)
+        hlay = QtWidgets.QHBoxLayout()
+        hlay.setContentsMargins(0, 0, 0, 0)
         hlay.addStretch(1)
-        self.ChanTab['UnitBtns'][unitName] = QtGui.QPushButton('Unit %02d' % unitNo)
+        self.ChanTab['UnitBtns'][unitName] = QtWidgets.QPushButton('Unit %02d' % unitNo)
         self.ChanTab['UnitBtns'][unitName].setMaximumHeight(20)
         self.ChanTab['UnitBtns'][unitName].clicked.connect(self.ChangeUnitColor_proc)
         self.ChanTab['UnitBtns'][unitName].setStyleSheet('QPushButton {background: rgb%s}' % str(tuple(np.int16(255 * self.UnitColors[unitNo]))))
@@ -2993,24 +3013,24 @@ class SpikeSorter(QtGui.QMainWindow):
         hlay.addStretch(1)
 
         # plot-raw check button
-        self.ChanTab['PlotRawCheck'][unitName] = QtGui.QCheckBox()
+        self.ChanTab['PlotRawCheck'][unitName] = QtWidgets.QCheckBox()
         self.ChanTab['PlotRawCheck'][unitName].setObjectName(str(unitNo))
         self.ChanTab['PlotRawCheck'][unitName].setChecked(False)
         self.ChanTab['PlotRawCheck'][unitName].setMaximumHeight(20)
         self.ChanTab['PlotRawCheck'][unitName].stateChanged.connect(self.SetWaveformVisible_proc)
-        lbl = QtGui.QLabel('Plot Raw ?')
+        lbl = QtWidgets.QLabel('Plot Raw ?')
         lbl.setMaximumHeight(20)
         hlay.addWidget(lbl)
         hlay.addWidget(self.ChanTab['PlotRawCheck'][unitName])
         hlay.addStretch(1)
 
         # is Multiunit check button
-        self.ChanTab['isMultiunitCheck'][unitName] = QtGui.QCheckBox()
+        self.ChanTab['isMultiunitCheck'][unitName] = QtWidgets.QCheckBox()
         self.ChanTab['isMultiunitCheck'][unitName].setObjectName(str(unitNo))
         self.ChanTab['isMultiunitCheck'][unitName].setChecked(False)
         self.ChanTab['isMultiunitCheck'][unitName].setMaximumHeight(20)
         self.ChanTab['isMultiunitCheck'][unitName].stateChanged.connect(self.SetisMultiunit_proc)
-        lbl = QtGui.QLabel('isMultiunit ?')
+        lbl = QtWidgets.QLabel('isMultiunit ?')
         lbl.setMaximumHeight(20)
         hlay.addWidget(lbl)
         hlay.addWidget(self.ChanTab['isMultiunitCheck'][unitName])
@@ -3028,16 +3048,16 @@ class SpikeSorter(QtGui.QMainWindow):
             self.h5file.create_array('/Spikes/Chan_%03d/Unit%02d' % (self.CurChan, unitNo), 'isMultiunit', False)
 
         # add a label with the waveform count
-        lbl = QtGui.QLabel('Count')
+        lbl = QtWidgets.QLabel('Count')
         lbl.setMaximumHeight(20)
         hlay.addWidget(lbl)
-        self.ChanTab['UnitCountLabel'][unitName] = QtGui.QLabel('%d' % self.h5file.get_node(self.CurNodeName, unitName).Indx.nrows)
+        self.ChanTab['UnitCountLabel'][unitName] = QtWidgets.QLabel('%d' % self.h5file.get_node(self.CurNodeName, unitName).Indx.nrows)
         self.ChanTab['UnitCountLabel'][unitName].setMaximumHeight(20)
         hlay.addWidget(self.ChanTab['UnitCountLabel'][unitName])
         hlay.addStretch(1)
 
         # add delete-unit button
-        self.ChanTab['DelUnitBtns'][unitName] = QtGui.QPushButton('Del Unit')
+        self.ChanTab['DelUnitBtns'][unitName] = QtWidgets.QPushButton('Del Unit')
         self.ChanTab['DelUnitBtns'][unitName].setObjectName(unitName)
         self.ChanTab['DelUnitBtns'][unitName].setMaximumHeight(20)
         self.ChanTab['DelUnitBtns'][unitName].clicked.connect(self.DelUnit_proc)
@@ -3058,9 +3078,9 @@ class SpikeSorter(QtGui.QMainWindow):
         vlay.addWidget(self.ChanTab['UnitFigures'][unitName])
         #vlay.addWidget(n)
 
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         hlay.setSpacing(0)
-        hlay.setMargin(2)
+        hlay.setContentsMargins(2, 2, 2, 2)
         hlay.addLayout(vlay)
         hlay.addWidget(n)
 
@@ -3086,15 +3106,15 @@ class SpikeSorter(QtGui.QMainWindow):
             nCols = self.OverviewTab2['OverviewTable'].columnCount()
             self.OverviewTab2['OverviewTable'].setColumnWidth(nCols - 1, 65)
             self.OverviewTab2['OverviewTable'].setHorizontalHeaderItem(nCols - 1,
-                                                                       QtGui.QTableWidgetItem('Unit%02d' % unitNo))
+                                                                       QtWidgets.QTableWidgetItem('Unit%02d' % unitNo))
 
         self.OverviewTab2['OverviewTable'].takeItem(row, unitNo + 6)
-        lbl = QtGui.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, unitName).Indx.nrows))
+        lbl = QtWidgets.QTableWidgetItem(str(self.h5file.get_node(self.CurNodeName, unitName).Indx.nrows))
         self.OverviewTab2['OverviewTable'].setItem(row, unitNo + 6, lbl)
 
         # update the unsorted number in the overview table
         self.OverviewTab2['OverviewTable'].takeItem(row, 4)
-        lbl = QtGui.QTableWidgetItem(str(len(self.Unsorted)))
+        lbl = QtWidgets.QTableWidgetItem(str(len(self.Unsorted)))
         self.OverviewTab2['OverviewTable'].setItem(row, 4, lbl)
 
     #__________________________________________________________________________
@@ -3189,8 +3209,7 @@ class SpikeSorter(QtGui.QMainWindow):
         ts11 = np.tile(ts, (ts.size, 1))
         ts22 = np.tile(ts, (ts.size, 1)).transpose()
         x = ts11 - ts22
-        ac, lags = np.histogram(x.flatten(), bins=100, range=(-500, 500),
-                                normed=True)
+        ac, lags = np.histogram(x.flatten(), bins=100, range=(-500, 500))
         ac[np.flatnonzero(lags == 0)] = 0.0
         ax2.bar(lags[0:-1], ac, width=np.diff(lags)[0], edgecolor='none',
                 color=self.UnitColors[unitNo])
@@ -3629,19 +3648,19 @@ class SpikeSorter(QtGui.QMainWindow):
         unitNo = int(re.search('[0-9]{1,3}', unitName).group())
 
         if not np.any(color):
-            c = QtGui.QColorDialog()
+            c = QtWidgets.QColorDialog()
             color = c.getColor(sender.palette().color(1))
             if not color.isValid():
                 return
 
-        if isinstance(color, QtGui.QColor):
+        if isinstance(color, QtWidgets.QColor):
             qtColor = color
         else:
             qtColor = QtGui.QColor(*color)
 
         mplColor = np.array(qtColor.getRgb()[0:3]) / 255.0
 
-        if isinstance(self.sender(), QtGui.QPushButton) and \
+        if isinstance(self.sender(), QtWidgets.QPushButton) and \
            'Unit' in self.sender().text():
             self.sender().setStyleSheet('QPushButton {background: rgb%s}' % str(qtColor.getRgb()[0:3]))
 
@@ -3820,10 +3839,10 @@ class SpikeSorter(QtGui.QMainWindow):
 
 
 #==============================================================================
-if __name__ == '__main__':
-    if not QtGui.QApplication.instance():
-        app = QtGui.QApplication(sys.argv)
-    else:
-        app = QtGui.QApplication.instance()
-    spikesorter = SpikeSorter()
-    sys.exit(app.exec_())
+#if __name__ == '__main__':
+#if not QtWidgets.QApplication.instance():
+#    app = QtWidgets.QApplication(sys.argv)
+#else:
+#    app = QtWidgets.QApplication.instance()
+spikesorter = SpikeSorter()
+sys.exit(app.exec_())

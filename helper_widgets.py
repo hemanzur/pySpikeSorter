@@ -1,49 +1,49 @@
-from PyQt4 import QtGui
-import guidata
+from PyQt5 import QtGui, QtWidgets
+#import guidata
 import os
 import re
 import numpy as np
-app = guidata.qapplication()
-import guidata.dataset.datatypes as dt
-import guidata.dataset.dataitems as di
+#app = guidata.qapplication()
+#import guidata.dataset.datatypes as dt
+#import guidata.dataset.dataitems as di
 from matplotlib.pyplot import cm
 
 colormaps = [k for k in cm.datad.keys() if not k.endswith('_r')]
 
 
 #==============================================================================
-class MergeUnitsWidget(QtGui.QWidget):
+class MergeUnitsWidget(QtWidgets.QWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.setWindowTitle('Merge Units')
-        hlay = QtGui.QHBoxLayout()
-        self.list1 = QtGui.QListWidget()
+        hlay = QtWidgets.QHBoxLayout()
+        self.list1 = QtWidgets.QListWidget()
         self.list1.setMaximumWidth(100)
-        self.list2 = QtGui.QListWidget()
+        self.list2 = QtWidgets.QListWidget()
         self.list2.setMaximumWidth(100)
         icon = QtGui.QIcon.fromTheme('go-next')
-        btnRight = QtGui.QPushButton(icon, '')
+        btnRight = QtWidgets.QPushButton(icon, '')
         btnRight.clicked.connect(self.toRight)
         icon = QtGui.QIcon.fromTheme('go-previous')
-        btnLeft = QtGui.QPushButton(icon, '')
+        btnLeft = QtWidgets.QPushButton(icon, '')
         btnLeft.clicked.connect(self.toLeft)
-        vlay = QtGui.QVBoxLayout()
+        vlay = QtWidgets.QVBoxLayout()
         hlay.addWidget(self.list1)
         vlay.addWidget(btnRight)
         vlay.addWidget(btnLeft)
         hlay.addLayout(vlay)
         hlay.addWidget(self.list2)
 
-        vlay = QtGui.QVBoxLayout()
+        vlay = QtWidgets.QVBoxLayout()
         vlay.addLayout(hlay)
 
-        self.CancelBtn = QtGui.QPushButton('Cancel')
+        self.CancelBtn = QtWidgets.QPushButton('Cancel')
         self.CancelBtn.clicked.connect(self.close)
 
-        self.AcceptBtn = QtGui.QPushButton('Accept')
+        self.AcceptBtn = QtWidgets.QPushButton('Accept')
         self.AcceptBtn.clicked.connect(self.Accept_proc)
 
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         hlay.addWidget(self.CancelBtn)
         hlay.addWidget(self.AcceptBtn)
 
@@ -74,35 +74,35 @@ class MergeUnitsWidget(QtGui.QWidget):
 
 
 #==============================================================================
-class MoveUnitsWidget(QtGui.QWidget):
+class MoveUnitsWidget(QtWidgets.QWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.setWindowTitle('Move Units')
-        hlay = QtGui.QHBoxLayout()
-        self.list = QtGui.QListWidget()
+        hlay = QtWidgets.QHBoxLayout()
+        self.list = QtWidgets.QListWidget()
         self.list.setMaximumWidth(100)
         icon = QtGui.QIcon.fromTheme('go-up')
-        btnUp = QtGui.QPushButton(icon, '')
+        btnUp = QtWidgets.QPushButton(icon, '')
         btnUp.clicked.connect(self.toUp)
         icon = QtGui.QIcon.fromTheme('go-down')
-        btnDown = QtGui.QPushButton(icon, '')
+        btnDown = QtWidgets.QPushButton(icon, '')
         btnDown.clicked.connect(self.toDown)
-        vlay = QtGui.QVBoxLayout()
+        vlay = QtWidgets.QVBoxLayout()
         hlay.addWidget(self.list)
         vlay.addWidget(btnUp)
         vlay.addWidget(btnDown)
         hlay.addLayout(vlay)
 
-        vlay = QtGui.QVBoxLayout()
+        vlay = QtWidgets.QVBoxLayout()
         vlay.addLayout(hlay)
 
-        self.CancelBtn = QtGui.QPushButton('Cancel')
+        self.CancelBtn = QtWidgets.QPushButton('Cancel')
         self.CancelBtn.clicked.connect(self.close)
 
-        self.AcceptBtn = QtGui.QPushButton('Accept')
+        self.AcceptBtn = QtWidgets.QPushButton('Accept')
         self.AcceptBtn.clicked.connect(self.Accept_proc)
 
-        hlay = QtGui.QHBoxLayout()
+        hlay = QtWidgets.QHBoxLayout()
         hlay.addWidget(self.CancelBtn)
         hlay.addWidget(self.AcceptBtn)
 
@@ -137,39 +137,39 @@ class MoveUnitsWidget(QtGui.QWidget):
 
 
 #==============================================================================
-class AutoClustWidget(QtGui.QWidget):
+class AutoClustWidget(QtWidgets.QWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.setWindowTitle('Automatic Clustering')
-        vlay = QtGui.QVBoxLayout(self)
-        hlay = QtGui.QHBoxLayout()
-        self.MinClust = QtGui.QSpinBox()
+        vlay = QtWidgets.QVBoxLayout(self)
+        hlay = QtWidgets.QHBoxLayout()
+        self.MinClust = QtWidgets.QSpinBox()
         self.MinClust.setRange(1, 5)
         self.MinClust.setValue(2)
-        hlay.addWidget(QtGui.QLabel('Min'))
+        hlay.addWidget(QtWidgets.QLabel('Min'))
         hlay.addWidget(self.MinClust)
-        self.MaxClust = QtGui.QSpinBox()
+        self.MaxClust = QtWidgets.QSpinBox()
         self.MaxClust.setRange(2, 10)
         self.MaxClust.setValue(4)
-        hlay.addWidget(QtGui.QLabel('Max'))
+        hlay.addWidget(QtWidgets.QLabel('Max'))
         hlay.addWidget(self.MaxClust)
         vlay.addLayout(hlay)
 
-        hlay = QtGui.QHBoxLayout()
-        self.ClusteringMethod = QtGui.QComboBox(self)
+        hlay = QtWidgets.QHBoxLayout()
+        self.ClusteringMethod = QtWidgets.QComboBox(self)
         self.ClusteringMethod.addItems(['KlustaKwik', 'KMeans',
                                         'Afinity Propagation',
                                         'Mean-shift', 'Spectral Clustering',
                                         'Hierarchical clustering',
                                         'DBSCAN', 'Gaussian Mixtures'])
-        hlay.addWidget(QtGui.QLabel('Method'))
+        hlay.addWidget(QtWidgets.QLabel('Method'))
         hlay.addWidget(self.ClusteringMethod)
         vlay.addLayout(hlay)
 
-        hlay = QtGui.QHBoxLayout()
-        AutoClustBtn = QtGui.QPushButton('Preview')
+        hlay = QtWidgets.QHBoxLayout()
+        AutoClustBtn = QtWidgets.QPushButton('Preview')
         #AutoClustBtn.clicked.connect(self.AutoClust_proc)
-        ClusteringCommitBtn = QtGui.QPushButton('Commit')
+        ClusteringCommitBtn = QtWidgets.QPushButton('Commit')
         hlay.addWidget(AutoClustBtn)
         hlay.addWidget(ClusteringCommitBtn)
         vlay.addLayout(hlay)
@@ -212,6 +212,7 @@ def KlustaKwik_call(data, minClust=2, maxClust=5):
 
     return clustIndx
 
+"""
 
 #==============================================================================
 class Settings(dt.DataSet):
@@ -237,3 +238,35 @@ class AutocorrOpts(dt.DataSet):
     Win0 = di.IntItem('Win 0', default=-150)
     Win1 = di.IntItem('Win 1', default=150).set_pos(col=1)
 
+"""
+
+#==============================================================================
+
+class AutocorrOpts(QtWidgets.QWidget):
+     def __init__(self):
+        QtWidgets.QWidget.__init__(self)
+        self.setWindowTitle('Autocorrelation Options')
+        glay = QtWidgets.QGridLayout(self)
+
+        self.Mode = QtWidgets.QComboBox(self)
+        self.Mode.addItems(['ephys', 'fft', 'time'])
+        glay.addWidget(QtWidgets.QLabel("Mode"), 0, 0)
+        glay.addWidget(self.Mode, 0, 1)
+
+        self.BinSize = QtWidgets.QSpinBox()
+        self.BinSize.setRange(1, 20)
+        self.BinSize.setValue(1)
+        glay.addWidget(QtWidgets.QLabel("Bin Size"), 1, 0)
+        glay.addWidget(self.BinSize, 1, 1)
+
+        self.Win0 = QtWidgets.QSpinBox()
+        self.Win0.setRange(-400, -50)
+        self.Win0.setValue(-150)
+        glay.addWidget(QtWidgets.QLabel("Win0"), 2, 0)
+        glay.addWidget(self.Win0, 2, 1)
+
+        self.Win1 = QtWidgets.QSpinBox()
+        self.Win1.setRange(400, 50)
+        self.Win1.setValue(150)
+        glay.addWidget(QtWidgets.QLabel("Win1"), 3, 0)
+        glay.addWidget(self.Win1, 3, 1)
