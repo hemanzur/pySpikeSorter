@@ -17,7 +17,7 @@ call the function 'bin2H5' that bundles every step.
 Suggested usage:
 
 import m_BlackrockLib as BL
-BL.bin2h5() --> will ask for the files, optionally can be parsed as inputs
+BL.bin_to_h5() --> will ask for the files, optionally can be parsed as inputs
 
 ###############################################################################
 
@@ -27,14 +27,14 @@ is like this:
 /root:
     /Spikes:
         /Chan_xx:
-            /Waveforms: array of nrows (events) by ncolumns (points)
-            /TimeStamp: array with timestamps for each event
-            /Unsorted: array of indices of the unsorted units
+            /waveforms: array of nrows (events) by ncolumns (points)
+            /time_stamp: array with timestamps for each event
+            /unsorted: array of indices of the unsorted units
             /isMultiunit: boolean
             /isTrash: boolean. Whether the channel contains useful info.
     /Header:
         /NChans
-        /TimeStamp_Res: float. Timestamp time resolution
+        /time_stamp_Res: float. Timestamp time resolution
         /WaveformSize: int. Number of points per waveform
         /Date: of data acquisition
     /LFP:
@@ -79,7 +79,7 @@ hemanzur@gmail.com
 import os, struct, tables, pickle, re, shutil
 from glob import glob
 import numpy as np
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 #import guidata.dataset.dataitems as di
 #import guidata.dataset.datatypes as dt
 #import guidata
@@ -101,7 +101,7 @@ def read_basic_header(f):
     basic_header['file type id'] = f.read(8)
     basic_header['file spec']    = f.read(2)
     additional_flags = f.read(2)
-    basic_header['spike waveform is 16bit']      = bool(ord(additional_flags[0]))
+    basic_header['spike waveform is 16bit']      = bool(additional_flags[0])
     basic_header['bytes in headers'],            = struct.unpack('I',  f.read(4))
     basic_header['bytes in data packets'],       = struct.unpack('I',  f.read(4))
     basic_header['time stamp resolution Hz'],    = struct.unpack('I',  f.read(4))
@@ -113,9 +113,9 @@ def read_basic_header(f):
 
     #This is for us, not stored in the actual file
     basic_header['file size']     = file_length_in_bytes
-    basic_header['total packets'] = (basic_header['file size'] -\
-                                     basic_header['bytes in headers'])\
-                                     /basic_header['bytes in data packets']
+    basic_header['total packets'] = (basic_header['file size'] -
+                                     basic_header['bytes in headers']) // \
+                                     basic_header['bytes in data packets']
 
     return basic_header
 
@@ -134,21 +134,21 @@ def read_extended_header(f, basic_header):
     extended_header['neural event label']             = {} #NEUEVLBL
     extended_header['neural event filter']            = {} #NEUEVFLT
     extended_header['digital label']                  = {} #DIGLABEL
-    extended_header['NSAS expt information channels'] = {} #NSASEXEV
+    extended_header['nsas expt information channels'] = {} #nsasEXEV
 
     extended_header['other packets'] = []
     for nhdr in range(n_extended_headers):
         packet_id = f.read(8)
         payload = f.read(24)
-        if packet_id == 'ARRAYNME':
+        if packet_id == b'ARRAYNME':
             extended_header['electrode array'] = payload
-        elif packet_id == 'ECOMMENT':
+        elif packet_id == b'ECOMMENT':
             extended_header['comments'].append(payload)
-        elif packet_id == 'CCOMMENT':
+        elif packet_id == b'CCOMMENT':
             extended_header['comments'][-1] += payload
-        elif packet_id == 'MAPFILE':
+        elif packet_id == b'MAPFILE':
             extended_header['map file'] = payload
-        elif packet_id == 'NEUEVWAV':
+        elif packet_id == b'NEUEVWAV':
             parse_neuevwav(extended_header['neural event waveform'],
                            packet_id, payload)
         else:
@@ -193,13 +193,13 @@ def rewind(f, basic_header):
     
 ##########################################################################################
     
-def addSpikes2H5(h5file, pth, bas_header, ext_header, pd = None):
+def add_spikes_to_h5(h5file, pth, bas_header, ext_header, pd = None):
 
     if type(h5file) != tables.file.File:
         return
 
     # create a group to store spikes
-    h5file.createGroup('/', 'Spikes')
+    h5file.create_group('/', 'Spikes')
 
     # get a list with the files to process
     files = glob(os.path.join(pth, 'channel*'))
@@ -210,9 +210,9 @@ def addSpikes2H5(h5file, pth, bas_header, ext_header, pd = None):
     bytes_in_data_packets     = bas_header['bytes in data packets']
     bytes_per_waveform_sample = channel_info_dict['bytes per waveform sample']
     waveform_format = 'h'
-    waveform_size   = (bytes_in_data_packets - 8)/bytes_per_waveform_sample
-    Fs = float(bas_header['time stamp resolution Hz'])
-    Ts = 1.0/Fs
+    waveform_size = (bytes_in_data_packets - 8) // bytes_per_waveform_sample
+    fs = float(bas_header['time stamp resolution Hz'])
+    ts = 1.0/fs
     
     # iterate over the list of fragments
     for n,f in enumerate(files):
@@ -221,13 +221,13 @@ def addSpikes2H5(h5file, pth, bas_header, ext_header, pd = None):
             # animate progression bar
             pd.setLabelText('%s' % f)
             pd.setValue(n+1)
-            QtGui.QApplication.processEvents()
+            QtWidgets.QApplication.processEvents()
 
         # open binary fragment
         fid = open(f, 'rb')
 
         waveform = []
-        TS       = []
+        timestamps       = []
  
         while 1:
             # read "bytes_in_data_packets" from the current position
@@ -239,44 +239,44 @@ def addSpikes2H5(h5file, pth, bas_header, ext_header, pd = None):
             # transform the waveform and timestamp data into a number
             waveform.append(np.array(struct.unpack(waveform_size*waveform_format, w[8:]),
                                      dtype = np.int16))
-            TS.append(struct.unpack('I', w[0:4])[0] * Ts * 1000)
+            timestamps.append(struct.unpack('I', w[0:4])[0] * ts * 1000)
 
         # close fragment
         fid.close()
         
         # if the channel doesen't contain waveforms or timestamps:
-        if not waveform or not TS: continue
+        if not waveform or not timestamps: continue
 
         # transform waveforms and timestamps into 16 bits integer array
         waveform = np.array(waveform, dtype=np.int16)
-        TS       = np.array(TS)
-        Unsorted = np.arange(len(TS))
+        timestamps       = np.array(timestamps)
+        unsorted = np.arange(len(timestamps))
 
         # create the groups and arrays inside the h5file
         # to host the information
-        chName = 'Chan_%03d' % (n+1)
-        h5file.createGroup('/Spikes', chName)
-        h5file.createArray('/Spikes/'+chName,'Waveforms', waveform)
-        h5file.createArray('/Spikes/'+chName,'TimeStamp', TS)
-        h5file.createArray('/Spikes/'+chName,'Unsorted',  Unsorted)
-        h5file.createArray('/Spikes/'+chName,'isMultiunit', False)
-        h5file.createArray('/Spikes/'+chName,'isTrash',   False)
+        ch_name = 'Chan_%03d' % (n+1)
+        h5file.create_group('/Spikes', ch_name)
+        h5file.create_array('/Spikes/'+ch_name,'Waveforms', waveform)
+        h5file.create_array('/Spikes/'+ch_name,'TimeStamp', timestamps)
+        h5file.create_array('/Spikes/'+ch_name,'Unsorted',  unsorted)
+        h5file.create_array('/Spikes/'+ch_name,'isMultiunit', False)
+        h5file.create_array('/Spikes/'+ch_name,'isTrash',   False)
 
     # add header information to the h5 file
     if not h5file.__contains__('/Header'):
-        h5file.createGroup('/','Header')
-    h5file.createArray('/Header', 'WaveformSize', waveform_size)
-    h5file.createArray('/Header', 'TimeStamp_Res', Fs)
+        h5file.create_group('/','Header')
+    h5file.create_array('/Header', 'WaveformSize', waveform_size)
+    h5file.create_array('/Header', 'TimeStamp_Res', fs)
 
     # save changes to disk
     h5file.flush()
         
 ##########################################################################################
 
-def addNonNeural2H5(h5file, pth, bas_header, pd = None):
+def add_non_neural_to_h5(h5file, pth, bas_header, pd = None):
 
     # read the non neural data
-    Timestamps, code = read_frag_nonneural_digital(pth, bas_header)
+    timestamps, code = read_frag_nonneural_digital(pth, bas_header)
 
     # read the bit changes in the binary codes
     if not np.any(code): return
@@ -285,32 +285,33 @@ def addNonNeural2H5(h5file, pth, bas_header, pd = None):
     if pd is not None:
         pd.setLabelText('Adding Non Neural Data ...')
         pd.setValue(pd.value()+1)
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
         
-    binCode = np.int8([ map(int, np.binary_repr(k, width = 16)) for k in code], ndmin=2)
-    tmp     = np.ones( shape = (1, binCode.shape[1]), dtype = np.int8)
-    tmp     = np.append(tmp, binCode, axis = 0)
+    bin_code = np.array([[int(bit) for bit in np.binary_repr(k, width=16)]
+                        for k in code], dtype=np.int8, ndmin=2)
+    tmp     = np.ones( shape = (1, bin_code.shape[1]), dtype = np.int8)
+    tmp     = np.append(tmp, bin_code, axis = 0)
     dx      = np.diff(tmp, n=1, axis=0)
-    L       = dx.shape[1]
+    length       = dx.shape[1]
     ton     = []
     toff    = []
     
-    for k in range(1, L+1):
-        ton.append(Timestamps[dx[:,-k]<0])
-        toff.append(Timestamps[dx[:,-k]>0])
+    for k in range(1, length+1):
+        ton.append(timestamps[dx[:,-k]<0])
+        toff.append(timestamps[dx[:,-k]>0])
 
     # create the group and leaves to hold the non neural data
-    h5file.createGroup('/','Non_Neural_Events')
-    h5file.createGroup('/Non_Neural_Events', 'ton')
-    h5file.createGroup('/Non_Neural_Events', 'toff')
+    h5file.create_group('/','Non_Neural_Events')
+    h5file.create_group('/Non_Neural_Events', 'ton')
+    h5file.create_group('/Non_Neural_Events', 'toff')
     
     for j, k in enumerate(ton):
         if len(k)>0:
-            h5file.createArray('/Non_Neural_Events/ton', 'ton_%02d' % j, k)
+            h5file.create_array('/Non_Neural_Events/ton', 'ton_%02d' % j, k)
 
     for j, k in enumerate(toff):
         if len(k)>0:
-            h5file.createArray('/Non_Neural_Events/toff', 'toff_%02d' % j, k)
+            h5file.create_array('/Non_Neural_Events/toff', 'toff_%02d' % j, k)
 
     # save changes to disk
     h5file.flush()
@@ -409,7 +410,7 @@ def fragment(f, basic_header, extended_header,
     nnev_counter = 0
 
     percent_packets_read = 0
-    one_percent_packets = basic_header['total packets']/100
+    one_percent_packets = max(1, basic_header['total packets'] // 100)
     packet_counter = one_percent_packets
 
     while not eof:
@@ -430,7 +431,7 @@ def fragment(f, basic_header, extended_header,
             elif pi in channel_list:
                 buffer = f.read(bytes_in_data_packets - 6)
                 if not ignore_spike_sorting:
-                    sub_unit, =  struct.unpack('B', buffer[0])
+                    sub_unit, = struct.unpack('B', buffer[:1])
                 else:
                     sub_unit = 0
                 thisfptr = fout[pi-1][sub_unit]
@@ -469,14 +470,14 @@ def read_frag_nonneural_digital(frag_dir, basic_header):
     file_length_in_bytes = f.tell()
     f.seek(0)#skip back to start
 
-    Fs = float(basic_header['time stamp resolution Hz'])
-    T_ms = 1000.0/Fs #ms in one clock cycle
+    fs = float(basic_header['time stamp resolution Hz'])
+    t_ms = 1000.0/fs #ms in one clock cycle
     bytes_in_data_packets = basic_header['bytes in data packets']
 
-    N = file_length_in_bytes/bytes_in_data_packets
+    n_packets = file_length_in_bytes // bytes_in_data_packets
     
-    time_stamp_ms = np.zeros(N, dtype='float32')
-    codes = np.zeros(N, dtype='uint16')
+    time_stamp_ms = np.zeros(n_packets, dtype='float32')
+    codes = np.zeros(n_packets, dtype='uint16')
 
     eof     = False
     counter = 0
@@ -486,7 +487,7 @@ def read_frag_nonneural_digital(frag_dir, basic_header):
         if len(buffer) < bytes_in_data_packets: eof = True
         else:
             timestamp, = struct.unpack('I', buffer[0:4])
-            time_stamp_ms[counter] = timestamp * T_ms
+            time_stamp_ms[counter] = timestamp * t_ms
             codes[counter], = struct.unpack('H', buffer[8:10])
             counter += 1
 
@@ -496,15 +497,15 @@ def read_frag_nonneural_digital(frag_dir, basic_header):
 ######## FUNCTIONS TO READ THE CONTINOUS DATA (LFP) ######################################
 ##########################################################################################
 
-def list2str(List):
+def list_to_str(items):
     ''' helper function to transform a list into a string '''
     tmp=''
-    for k in List: tmp = tmp + k
+    for k in items: tmp = tmp + k
     return tmp
 
 ##########################################################################################
 
-def readNS2(filename = None):
+def read_ns2(filename = None):
     '''reads the ns5 file and returns a dictionary with all the data structure'''
 
     # return if not filename provided
@@ -513,145 +514,145 @@ def readNS2(filename = None):
     # get the path and the filename
     path  = os.path.split(filename)[0]
     fname = os.path.split(filename)[1]
-    NSx   = dict(MetaTags={}, ElectrodesInfo={})
+    nsx   = dict(meta_tags={}, electrodes_info={})
 
     # Defining constants
-    ExtHeaderLength = 66
+    ext_header_length = 66
 
     # use the fromfile function from numpy. Read everything as unsiged int8
-    FData = np.fromfile(os.path.join(path, fname), dtype = np.uint8)
+    file_data = np.fromfile(os.path.join(path, fname), dtype = np.uint8)
 
     # read meta information
-    NSx['MetaTags']['Filename']     = fname
-    NSx['MetaTags']['FilePath']     = path
-    NSx['MetaTags']['FileExt']      = re.search('(?<=\.)[a-zA-z0-9]*', fname).group()
-    NSx['MetaTags']['FileTypeID']   = FData[0:8].tostring()
-    NSx['MetaTags']['openNSxver'] = '4.2.1.4'
+    nsx['meta_tags']['Filename']     = fname
+    nsx['meta_tags']['file_path']     = path
+    nsx['meta_tags']['FileExt']      = re.search(r'(?<=\.)[a-zA-z0-9]*', fname).group()
+    nsx['meta_tags']['FileTypeID']   = file_data[0:8].tobytes()
+    nsx['meta_tags']['opennsxver'] = '4.2.1.4'
 
     vchar = np.vectorize(chr)
 
     # currently we can only read "NEURALCD" files
-    if NSx['MetaTags']['FileTypeID'] != 'NEURALCD': return
+    if nsx['meta_tags']['FileTypeID'] != b'NEURALCD': return
 
     # get basic information
-    BasicHeader                      = FData[8:8+306]
-    NSx['MetaTags']['FileSpec']      = '%d.%d' % (BasicHeader[0], BasicHeader[1])
-    NSx['MetaTags']['SamplingLabel'] = BasicHeader[6:22].tostring()
-    NSx['MetaTags']['Comment']       = BasicHeader[22:278].tostring()
-    NSx['MetaTags']['TimeRes']       = BasicHeader[282:286].view(np.uint32)[0]
-    NSx['MetaTags']['SamplingFreq']  = NSx['MetaTags']['TimeRes'] / np.double(BasicHeader[278:282].view(np.uint32))
+    basic_header_bytes                      = file_data[8:8+306]
+    nsx['meta_tags']['FileSpec']      = '%d.%d' % (basic_header_bytes[0], basic_header_bytes[1])
+    nsx['meta_tags']['SamplingLabel'] = basic_header_bytes[6:22].tobytes()
+    nsx['meta_tags']['Comment']       = basic_header_bytes[22:278].tobytes()
+    nsx['meta_tags']['TimeRes']       = basic_header_bytes[282:286].view(np.uint32)[0]
+    nsx['meta_tags']['SamplingFreq']  = nsx['meta_tags']['TimeRes'] / np.double(basic_header_bytes[278:282].view(np.uint32))
 
     # read the date time information
-    t                              = BasicHeader[286:302].view(np.uint16)
-    NSx['MetaTags']['DateTimeRaw'] = t
-    NSx['MetaTags']['DateTime']    = str(t[1])+'/'+str(t[3])+'/'+str(t[0])+\
+    t                              = basic_header_bytes[286:302].view(np.uint16)
+    nsx['meta_tags']['DateTimeRaw'] = t
+    nsx['meta_tags']['DateTime']    = str(t[1])+'/'+str(t[3])+'/'+str(t[0])+\
                                      ' '+str(t[4])+':'+str(t[5])+':'+str(t[6])+'.'+str(t[7])
 
     # get the number of channels
-    ChannelCount                     = BasicHeader[302:306].view(np.uint32)[0]
-    NSx['MetaTags']['ChannelCount']  = ChannelCount
+    channel_count                     = basic_header_bytes[302:306].view(np.uint32)[0]
+    nsx['meta_tags']['channel_count']  = channel_count
 
     # get the extended header
     curpos = 8 + 306
-    readSize        = np.int32(ChannelCount * ExtHeaderLength)
-    ExtendedHeader  = FData[curpos : curpos + readSize]
-    curpos          = curpos + readSize
+    read_size        = np.int32(channel_count * ext_header_length)
+    extended_header_bytes  = file_data[curpos : curpos + read_size]
+    curpos          = curpos + read_size
 
     # check if file is corrupted
-    if FData[curpos] != 1:
+    if file_data[curpos] != 1:
         print('Cannot read file. Data header is corrupted!')
         return
 
-    NSx['MetaTags']['Timestamp']  = FData[curpos+1:curpos+5].view(np.uint32)[0]
+    nsx['meta_tags']['Timestamp']  = file_data[curpos+1:curpos+5].view(np.uint32)[0]
     curpos = curpos + 5
-    NSx['MetaTags']['DataPoints'] = FData[curpos:curpos+4].view(np.uint32)[0]
+    nsx['meta_tags']['DataPoints'] = file_data[curpos:curpos+4].view(np.uint32)[0]
     curpos = curpos + 4
 
 
-    NSx['ElectrodesInfo'] = []
+    nsx['electrodes_info'] = []
     ##  Populating extended header information
-    for headerIDX in range(0, ChannelCount):
-        offset = (headerIDX)*ExtHeaderLength
+    for header_idx in range(0, channel_count):
+        offset = (header_idx)*ext_header_length
 
-        NSx['ElectrodesInfo'].append({})
+        nsx['electrodes_info'].append({})
 
-        NSx['ElectrodesInfo'][headerIDX]['Type'] = list2str(vchar(ExtendedHeader[np.arange(0,2)+offset]))
-        if NSx['ElectrodesInfo'][headerIDX]['Type'] != 'CC':
+        nsx['electrodes_info'][header_idx]['Type'] = list_to_str(vchar(extended_header_bytes[np.arange(0,2)+offset]))
+        if nsx['electrodes_info'][header_idx]['Type'] != 'CC':
             print('extended header not supported')
             return
 
-        NSx['ElectrodesInfo'][headerIDX]['ElectrodeID']    = ExtendedHeader[np.arange(2,4)+offset].view(np.uint16)[0]
-        NSx['ElectrodesInfo'][headerIDX]['Label']          = list2str(vchar(ExtendedHeader[np.arange(4,20)+offset]))
-        NSx['ElectrodesInfo'][headerIDX]['ConnectorBank']  = chr(ExtendedHeader[20+offset] + ord('A') - 1)
-        NSx['ElectrodesInfo'][headerIDX]['ConnectorPin']   = ExtendedHeader[21+offset]
-        NSx['ElectrodesInfo'][headerIDX]['MinDigiValue']   = ExtendedHeader[np.arange(22,24)+offset].view(np.int16)[0]
-        NSx['ElectrodesInfo'][headerIDX]['MaxDigiValue']   = ExtendedHeader[np.arange(24,26)+offset].view(np.int16)[0]
-        NSx['ElectrodesInfo'][headerIDX]['MinAnalogValue'] = ExtendedHeader[np.arange(26,28)+offset].view(np.int16)[0]
-        NSx['ElectrodesInfo'][headerIDX]['MaxAnalogValue'] = ExtendedHeader[np.arange(28,30)+offset].view(np.int16)[0]
-        NSx['ElectrodesInfo'][headerIDX]['AnalogUnits']    = list2str(vchar(ExtendedHeader[np.arange(30,46)+offset]))
-        NSx['ElectrodesInfo'][headerIDX]['HighFreqCorner'] = ExtendedHeader[np.arange(46,50)+offset].view(np.uint32)[0]
-        NSx['ElectrodesInfo'][headerIDX]['HighFreqOrder']  = ExtendedHeader[np.arange(50,54)+offset].view(np.uint32)[0]
-        NSx['ElectrodesInfo'][headerIDX]['HighFilterType'] = ExtendedHeader[np.arange(54,56)+offset].view(np.uint16)[0]
-        NSx['ElectrodesInfo'][headerIDX]['LowFreqCorner']  = ExtendedHeader[np.arange(56,60)+offset].view(np.uint32)[0]
-        NSx['ElectrodesInfo'][headerIDX]['LowFreqOrder']   = ExtendedHeader[np.arange(60,64)+offset].view(np.uint32)[0]
-        NSx['ElectrodesInfo'][headerIDX]['LowFilterType']  = ExtendedHeader[np.arange(64,66)+offset].view(np.uint16)[0]
+        nsx['electrodes_info'][header_idx]['ElectrodeID']    = extended_header_bytes[np.arange(2,4)+offset].view(np.uint16)[0]
+        nsx['electrodes_info'][header_idx]['Label']          = list_to_str(vchar(extended_header_bytes[np.arange(4,20)+offset]))
+        nsx['electrodes_info'][header_idx]['ConnectorBank']  = chr(extended_header_bytes[20+offset] + ord('A') - 1)
+        nsx['electrodes_info'][header_idx]['ConnectorPin']   = extended_header_bytes[21+offset]
+        nsx['electrodes_info'][header_idx]['MinDigiValue']   = extended_header_bytes[np.arange(22,24)+offset].view(np.int16)[0]
+        nsx['electrodes_info'][header_idx]['MaxDigiValue']   = extended_header_bytes[np.arange(24,26)+offset].view(np.int16)[0]
+        nsx['electrodes_info'][header_idx]['MinAnalogValue'] = extended_header_bytes[np.arange(26,28)+offset].view(np.int16)[0]
+        nsx['electrodes_info'][header_idx]['MaxAnalogValue'] = extended_header_bytes[np.arange(28,30)+offset].view(np.int16)[0]
+        nsx['electrodes_info'][header_idx]['AnalogUnits']    = list_to_str(vchar(extended_header_bytes[np.arange(30,46)+offset]))
+        nsx['electrodes_info'][header_idx]['HighFreqCorner'] = extended_header_bytes[np.arange(46,50)+offset].view(np.uint32)[0]
+        nsx['electrodes_info'][header_idx]['HighFreqOrder']  = extended_header_bytes[np.arange(50,54)+offset].view(np.uint32)[0]
+        nsx['electrodes_info'][header_idx]['HighFilterType'] = extended_header_bytes[np.arange(54,56)+offset].view(np.uint16)[0]
+        nsx['electrodes_info'][header_idx]['LowFreqCorner']  = extended_header_bytes[np.arange(56,60)+offset].view(np.uint32)[0]
+        nsx['electrodes_info'][header_idx]['LowFreqOrder']   = extended_header_bytes[np.arange(60,64)+offset].view(np.uint32)[0]
+        nsx['electrodes_info'][header_idx]['LowFilterType']  = extended_header_bytes[np.arange(64,66)+offset].view(np.uint16)[0]
 
     # finally get the data
-    NSx['Data'] = FData[curpos:].view(np.int16)
-    NSx['Data'] = NSx['Data'].reshape(NSx['Data'].size/ChannelCount, ChannelCount)
+    nsx['Data'] = file_data[curpos:].view(np.int16)
+    nsx['Data'] = nsx['Data'].reshape(nsx['Data'].size // channel_count, channel_count)
 
-    return NSx
+    return nsx
 
 #################################################################################
 
-def addLFP2h5(h5file = None, nsFileName = None, pd = None):
+def add_lfp_to_h5(h5file = None, ns_file_name = None, pd = None):
     '''Helper function to wrap LFP the converter '''
 
     # select an h5file if none provided
     if not h5file:
-        h5file =  str(QtGui.QFileDialog.getOpenFileName(filter = '*.h5'))
+        h5file = QtWidgets.QFileDialog.getOpenFileName(filter='*.h5')[0]
         if h5file:
-            h5file = tables.openFile(h5file, 'a')
+            h5file = tables.open_file(h5file, 'a')
         else:
             if pd is not None:
                 pd.setValue(pd.maximum()+1)
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
             return
     elif type(h5file) == str:
-        h5file = tables.openFile(h5file, 'a')
+        h5file = tables.open_file(h5file, 'a')
         
     # select an ns5 file
-    if not nsFileName:
-        nsFileName = str(QtGui.QFileDialog.getOpenFileName(filter = '*.ns2'))
-        if not nsFileName:
+    if not ns_file_name:
+        ns_file_name = QtWidgets.QFileDialog.getOpenFileName(filter='*.ns2')[0]
+        if not ns_file_name:
             if pd is not None:
                 pd.setValue(pd.maximum()+1)
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
             return
 
     if pd is not None:
         pd.setLabelText('Adding LFP data ...')
         pd.setValue(pd.value()+1)
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
         
     # read the data into a dictionary
-    NSx = readNS2(nsFileName)
+    nsx = read_ns2(ns_file_name)
 
     if h5file.__contains__('/LFP'):
-        h5file.removeNode('/', 'LFP', recursive= True)
+        h5file.remove_node('/', 'LFP', recursive= True)
 
-    h5file.createGroup('/', name = 'LFP')
-    h5file.createGroup('/LFP', name = 'MetaInfo')
-    h5file.createArray('/LFP/MetaInfo', 'SampFreq', NSx['MetaTags']['SamplingFreq'])
-    h5file.createArray('/LFP/MetaInfo', 'nChannels', NSx['MetaTags']['ChannelCount'])
+    h5file.create_group('/', name = 'LFP')
+    h5file.create_group('/LFP', name = 'MetaInfo')
+    h5file.create_array('/LFP/MetaInfo', 'SampFreq', nsx['meta_tags']['SamplingFreq'])
+    h5file.create_array('/LFP/MetaInfo', 'nChannels', nsx['meta_tags']['channel_count'])
 
-    for k in range(NSx['MetaTags']['ChannelCount']):
-        h5file.createGroup('/LFP', name = 'Chan_%03d' % (k+1))
-        h5file.createArray('/LFP/Chan_%03d' % (k+1), 'LFP', NSx['Data'][:,k])
+    for k in range(nsx['meta_tags']['channel_count']):
+        h5file.create_group('/LFP', name = 'Chan_%03d' % (k+1))
+        h5file.create_array('/LFP/Chan_%03d' % (k+1), 'LFP', nsx['Data'][:,k])
 
         # add the electrode information to each channel
-        for key in NSx['ElectrodesInfo'][k].keys():
-            h5file.createArray('/LFP/Chan_%03d' % (k+1), key, NSx['ElectrodesInfo'][k][key])
+        for key in nsx['electrodes_info'][k].keys():
+            h5file.create_array('/LFP/Chan_%03d' % (k+1), key, nsx['electrodes_info'][k][key])
 
     # save changes to disk
     h5file.flush()
@@ -664,39 +665,43 @@ def addLFP2h5(h5file = None, nsFileName = None, pd = None):
 class PthSelector(dt.DataSet):
     '''Helper class to create a dialog to input data'''
     
-    def chDir(self, item, value):
-        self.nsxFile = os.path.split(value)[0]+os.path.sep
+    def ch_dir(self, item, value):
+        self.nsx_file = os.path.split(value)[0]+os.path.sep
         
-    nevFile = di.FileOpenItem('NEV file', formats=['nev'])
-    nevFile.set_prop("display", callback=chDir)
-    nsxFile = di.FileOpenItem('NS2 file', formats=['ns2'])
+    nev_file = di.FileOpenItem('NEV file', formats=['nev'])
+    nev_file.set_prop("display", callback=ch_dir)
+    nsx_file = di.FileOpenItem('NS2 file', formats=['ns2'])
 
-selectPth = PthSelector()
+select_path = PthSelector()
 """
 
 ##########################################################################################
 
-def bin2h5(nevFile = None, nsxFile = None, pth = None):
+def bin_to_h5(nev_file = None, nsx_file = None, pth = None):
     '''Helper function to transform binary files to an h5 file.'''
 
-    if selectPth.edit(size = (600, 100)) == 1:
-        nevFile = selectPth.nevFile
-        nsxFile = selectPth.nsxFile
-    else:
-        return
+    if nev_file is None:
+        nev_file = QtWidgets.QFileDialog.getOpenFileName(filter='*.nev')[0]
+    if nsx_file is None:
+        nsx_file = QtWidgets.QFileDialog.getOpenFileName(filter='*.ns2')[0]
 
     # return if no files are provided
-    if not os.path.isfile(nevFile) and not os.path.isfile(nsxFile):
+    if not (nev_file and os.path.isfile(nev_file)) and not (nsx_file and os.path.isfile(nsx_file)):
         return
-    
+
+    files = []
+    bas_header = None
+    ext_header = None
+    spikes = False
+
     # if we were provided with a nev file
-    if os.path.isfile(nevFile):
+    if nev_file and os.path.isfile(nev_file):
         
         # first do spike operations
-        pth = os.path.split(nevFile)[0]
+        pth = os.path.split(nev_file)[0]
         
         # first extract all the fragments from the NEV file
-        pth = ext_fragments(filename = nevFile, outdir = pth)
+        pth = ext_fragments(filename = nev_file, outdir = pth)
     
         # read the list of filenames of fragments
         files = glob(os.path.join(pth, 'channel*'))
@@ -708,40 +713,44 @@ def bin2h5(nevFile = None, nsxFile = None, pth = None):
         bas_header = tmp[0]
         ext_header = tmp[1]
         
-        SPIKES = True
+        spikes = True
     
+    elif nsx_file and os.path.isfile(nsx_file):
+        pth = os.path.split(nsx_file)[0] if pth is None else pth
+        title = os.path.splitext(os.path.basename(nsx_file))[0]
+
     # create a new h5 file
     filename = os.path.join(pth, title) + '.h5'
-    h5file   = tables.openFile(filename, mode = 'w', title = title)
+    h5file   = tables.open_file(filename, mode = 'w', title = title)
 
     # create and display a progression bar
-    pd = QtGui.QProgressDialog('Processing Files', 'Cancel', 0, len(files)+2)
+    pd = QtWidgets.QProgressDialog('Processing Files', 'Cancel', 0, len(files)+2)
     pd.setWindowTitle('Processing Files ...')
     pd.setGeometry(500, 500, 500, 100)
     pd.show()
 
-    if SPIKES:
+    if spikes:
         # create basic structure inside the h5file
-        h5file.createGroup('/','Header')
-        h5file.createArray('/Header', 'NChans', len(files))
-        h5file.createArray('/Header', 'Date', np.array(bas_header['time origin']))
+        h5file.create_group('/','Header')
+        h5file.create_array('/Header', 'NChans', len(files))
+        h5file.create_array('/Header', 'Date', np.array(bas_header['time origin']))
     
         # add the spike data
-        addSpikes2H5(h5file, pth, bas_header, ext_header, pd = pd)    
+        add_spikes_to_h5(h5file, pth, bas_header, ext_header, pd = pd)    
         
         # add non neural data
-        addNonNeural2H5(h5file, pth, bas_header, pd = pd)
+        add_non_neural_to_h5(h5file, pth, bas_header, pd = pd)
     
-    if os.path.isfile(nsxFile):
+    if nsx_file and os.path.isfile(nsx_file):
         # add the lfp nsx file
-        addLFP2h5(h5file, nsFileName = nsxFile, pd = pd)
+        add_lfp_to_h5(h5file, ns_file_name = nsx_file, pd = pd)
     
     # close the h5file
     h5file.close()
 
     # move files and delete binary fragments
-    dstPth = os.path.split(pth)[0]
-    shutil.move(filename, dstPth)
-    shutil.move(os.path.join(pth, 'headers.p'),     dstPth)
-    shutil.move(os.path.join(pth, 'nonneural.bin'), dstPth)
+    dst_path = os.path.split(pth)[0]
+    shutil.move(filename, dst_path)
+    shutil.move(os.path.join(pth, 'headers.p'),     dst_path)
+    shutil.move(os.path.join(pth, 'nonneural.bin'), dst_path)
     shutil.rmtree(pth)

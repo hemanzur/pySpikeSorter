@@ -22,42 +22,42 @@ class MergeUnitsWidget(QtWidgets.QWidget):
         self.list2 = QtWidgets.QListWidget()
         self.list2.setMaximumWidth(100)
         icon = QtGui.QIcon.fromTheme('go-next')
-        btnRight = QtWidgets.QPushButton(icon, '')
-        btnRight.clicked.connect(self.toRight)
+        btn_right = QtWidgets.QPushButton(icon, '')
+        btn_right.clicked.connect(self.to_right)
         icon = QtGui.QIcon.fromTheme('go-previous')
-        btnLeft = QtWidgets.QPushButton(icon, '')
-        btnLeft.clicked.connect(self.toLeft)
+        btn_left = QtWidgets.QPushButton(icon, '')
+        btn_left.clicked.connect(self.to_left)
         vlay = QtWidgets.QVBoxLayout()
         hlay.addWidget(self.list1)
-        vlay.addWidget(btnRight)
-        vlay.addWidget(btnLeft)
+        vlay.addWidget(btn_right)
+        vlay.addWidget(btn_left)
         hlay.addLayout(vlay)
         hlay.addWidget(self.list2)
 
         vlay = QtWidgets.QVBoxLayout()
         vlay.addLayout(hlay)
 
-        self.CancelBtn = QtWidgets.QPushButton('Cancel')
-        self.CancelBtn.clicked.connect(self.close)
+        self.cancel_btn = QtWidgets.QPushButton('Cancel')
+        self.cancel_btn.clicked.connect(self.close)
 
-        self.AcceptBtn = QtWidgets.QPushButton('Accept')
-        self.AcceptBtn.clicked.connect(self.Accept_proc)
+        self.accept_btn = QtWidgets.QPushButton('Accept')
+        self.accept_btn.clicked.connect(self.accept)
 
         hlay = QtWidgets.QHBoxLayout()
-        hlay.addWidget(self.CancelBtn)
-        hlay.addWidget(self.AcceptBtn)
+        hlay.addWidget(self.cancel_btn)
+        hlay.addWidget(self.accept_btn)
 
         vlay.addLayout(hlay)
         self.setLayout(vlay)
 
     #__________________________________________________________________________
-    def Accept_proc(self):
+    def accept(self):
         units = [self.list2.item(k).text() for k in range(self.list2.count())]
         self.close()
         return units
 
     #__________________________________________________________________________
-    def toRight(self):
+    def to_right(self):
         if self.list1.currentRow() == -1:
             return
         item = self.list1.currentItem()
@@ -65,7 +65,7 @@ class MergeUnitsWidget(QtWidgets.QWidget):
         self.list2.addItem(item)
 
     #__________________________________________________________________________
-    def toLeft(self):
+    def to_left(self):
         if self.list2.currentRow() == -1:
             return
         item = self.list2.currentItem()
@@ -82,41 +82,41 @@ class MoveUnitsWidget(QtWidgets.QWidget):
         self.list = QtWidgets.QListWidget()
         self.list.setMaximumWidth(100)
         icon = QtGui.QIcon.fromTheme('go-up')
-        btnUp = QtWidgets.QPushButton(icon, '')
-        btnUp.clicked.connect(self.toUp)
+        btn_up = QtWidgets.QPushButton(icon, '')
+        btn_up.clicked.connect(self.to_up)
         icon = QtGui.QIcon.fromTheme('go-down')
-        btnDown = QtWidgets.QPushButton(icon, '')
-        btnDown.clicked.connect(self.toDown)
+        btn_down = QtWidgets.QPushButton(icon, '')
+        btn_down.clicked.connect(self.to_down)
         vlay = QtWidgets.QVBoxLayout()
         hlay.addWidget(self.list)
-        vlay.addWidget(btnUp)
-        vlay.addWidget(btnDown)
+        vlay.addWidget(btn_up)
+        vlay.addWidget(btn_down)
         hlay.addLayout(vlay)
 
         vlay = QtWidgets.QVBoxLayout()
         vlay.addLayout(hlay)
 
-        self.CancelBtn = QtWidgets.QPushButton('Cancel')
-        self.CancelBtn.clicked.connect(self.close)
+        self.cancel_btn = QtWidgets.QPushButton('Cancel')
+        self.cancel_btn.clicked.connect(self.close)
 
-        self.AcceptBtn = QtWidgets.QPushButton('Accept')
-        self.AcceptBtn.clicked.connect(self.Accept_proc)
+        self.accept_btn = QtWidgets.QPushButton('Accept')
+        self.accept_btn.clicked.connect(self.accept)
 
         hlay = QtWidgets.QHBoxLayout()
-        hlay.addWidget(self.CancelBtn)
-        hlay.addWidget(self.AcceptBtn)
+        hlay.addWidget(self.cancel_btn)
+        hlay.addWidget(self.accept_btn)
 
         vlay.addLayout(hlay)
         self.setLayout(vlay)
 
     #__________________________________________________________________________
-    def Accept_proc(self):
+    def accept(self):
         units = [self.list.item(k).text() for k in range(self.list.count())]
         self.close()
         return units
 
     #__________________________________________________________________________
-    def toUp(self):
+    def to_up(self):
         if self.list.currentRow() in [-1, 0]:
             return
         place = self.list.currentRow()
@@ -125,7 +125,7 @@ class MoveUnitsWidget(QtWidgets.QWidget):
         self.list.setCurrentRow(place - 1)
 
     #__________________________________________________________________________
-    def toDown(self):
+    def to_down(self):
         if self.list.currentRow() == -1:
             return
         if self.list.count() - 1 == self.list.currentRow():
@@ -143,42 +143,42 @@ class AutoClustWidget(QtWidgets.QWidget):
         self.setWindowTitle('Automatic Clustering')
         vlay = QtWidgets.QVBoxLayout(self)
         hlay = QtWidgets.QHBoxLayout()
-        self.MinClust = QtWidgets.QSpinBox()
-        self.MinClust.setRange(1, 5)
-        self.MinClust.setValue(2)
+        self.min_clust = QtWidgets.QSpinBox()
+        self.min_clust.setRange(1, 5)
+        self.min_clust.setValue(2)
         hlay.addWidget(QtWidgets.QLabel('Min'))
-        hlay.addWidget(self.MinClust)
-        self.MaxClust = QtWidgets.QSpinBox()
-        self.MaxClust.setRange(2, 10)
-        self.MaxClust.setValue(4)
+        hlay.addWidget(self.min_clust)
+        self.max_clust = QtWidgets.QSpinBox()
+        self.max_clust.setRange(2, 10)
+        self.max_clust.setValue(4)
         hlay.addWidget(QtWidgets.QLabel('Max'))
-        hlay.addWidget(self.MaxClust)
+        hlay.addWidget(self.max_clust)
         vlay.addLayout(hlay)
 
         hlay = QtWidgets.QHBoxLayout()
-        self.ClusteringMethod = QtWidgets.QComboBox(self)
-        self.ClusteringMethod.addItems(['KlustaKwik', 'KMeans',
+        self.clustering_method = QtWidgets.QComboBox(self)
+        self.clustering_method.addItems(['KlustaKwik', 'KMeans',
                                         'Afinity Propagation',
                                         'Mean-shift', 'Spectral Clustering',
                                         'Hierarchical clustering',
                                         'DBSCAN', 'Gaussian Mixtures'])
         hlay.addWidget(QtWidgets.QLabel('Method'))
-        hlay.addWidget(self.ClusteringMethod)
+        hlay.addWidget(self.clustering_method)
         vlay.addLayout(hlay)
 
         hlay = QtWidgets.QHBoxLayout()
-        AutoClustBtn = QtWidgets.QPushButton('Preview')
-        #AutoClustBtn.clicked.connect(self.AutoClust_proc)
-        ClusteringCommitBtn = QtWidgets.QPushButton('Commit')
-        hlay.addWidget(AutoClustBtn)
-        hlay.addWidget(ClusteringCommitBtn)
+        auto_clust_btn = QtWidgets.QPushButton('Preview')
+        #auto_clust_btn.clicked.connect(self.auto_clust)
+        clustering_commit_btn = QtWidgets.QPushButton('Commit')
+        hlay.addWidget(auto_clust_btn)
+        hlay.addWidget(clustering_commit_btn)
         vlay.addLayout(hlay)
 
         self.setLayout(vlay)
 
 
 #==============================================================================
-def KlustaKwik_call(data, minClust=2, maxClust=5):
+def klusta_kwik_call(data, min_clust=2, max_clust=5):
     ''' data must be an array of observations x dimensions'''
 
     # create a text file with the data. The first line must be the
@@ -192,51 +192,51 @@ def KlustaKwik_call(data, minClust=2, maxClust=5):
     f.close()
 
     # call klustakwick with the data
-    os.system('KlustaKwik data 1 -MinClusters %d -MaxClusters %d' % (minClust, maxClust))
+    os.system('KlustaKwik data 1 -MinClusters %d -MaxClusters %d' % (min_clust, max_clust))
 
     # read the results
     f = open('data.clu.1', 'r')
-    clusterData = f.readlines()
+    cluster_data = f.readlines()
     f.close()
-    clusterData = [int(re.search('[0-9]{1,2}', k).group()) for k in clusterData]
+    cluster_data = [int(re.search('[0-9]{1,2}', k).group()) for k in cluster_data]
 
     # the first line is the number of clusters
-    nClusters = clusterData[0]
-    clusterData.pop(0)
-    clusterData = np.array(clusterData)
+    n_clusters = cluster_data[0]
+    cluster_data.pop(0)
+    cluster_data = np.array(cluster_data)
 
     # create an array with the indices of each cluster
-    clustIndx = []
-    for k in range(1, nClusters + 1):
-        clustIndx.append(np.flatnonzero(clusterData == k))
+    cluster_indices = []
+    for k in range(1, n_clusters + 1):
+        cluster_indices.append(np.flatnonzero(cluster_data == k))
 
-    return clustIndx
+    return cluster_indices
 
 """
 
 #==============================================================================
-class Settings(dt.DataSet):
+class settings_dialog(dt.DataSet):
 
-    def chDir(self, item, value):
-        self.FiguresDir = os.path.split(value)[0] + os.path.sep
+    def ch_dir(self, item, value):
+        self.figures_dir = os.path.split(value)[0] + os.path.sep
 
     colormaps = [k for k in cm.datad.keys() if not k.endswith('_r')]
 
-    WorkingDir = di.DirectoryItem('Select a Working Dir').set_prop("display", callback=chDir)
-    FiguresDir = di.DirectoryItem('Path to save images')
-    Figurescolor = di.ColorItem('Fig color', default='black')
-    AxesColor = di.ColorItem('Axes color', default='gray').set_pos(col=1)
-    LassoColor = di.ColorItem('Lasso color', default='gray')
-    DensityCM = di.ChoiceItem('Density Color Map', tuple(colormaps),
+    working_dir = di.DirectoryItem('Select a Working Dir').set_prop("display", callback=ch_dir)
+    figures_dir = di.DirectoryItem('Path to save images')
+    figures_color = di.ColorItem('Fig color', default='black')
+    axes_color = di.ColorItem('Axes color', default='gray').set_pos(col=1)
+    lasso_color = di.ColorItem('Lasso color', default='gray')
+    density_cm = di.ChoiceItem('Density Color Map', tuple(colormaps),
                               default = colormaps.index('gist_heat')).set_pos(col=1)
 
 
 #==============================================================================
 class AutocorrOpts(dt.DataSet):
-    Mode = di.ChoiceItem('Mode', ['ephys', 'fft', 'time'])
-    BinSize = di.IntItem('BinSize', default=1).set_pos(col=1)
-    Win0 = di.IntItem('Win 0', default=-150)
-    Win1 = di.IntItem('Win 1', default=150).set_pos(col=1)
+    mode = di.ChoiceItem('mode', ['ephys', 'fft', 'time'])
+    bin_size = di.IntItem('bin_size', default=1).set_pos(col=1)
+    win_0 = di.IntItem('win 0', default=-150)
+    win_1 = di.IntItem('win 1', default=150).set_pos(col=1)
 
 """
 
@@ -248,25 +248,25 @@ class AutocorrOpts(QtWidgets.QWidget):
         self.setWindowTitle('Autocorrelation Options')
         glay = QtWidgets.QGridLayout(self)
 
-        self.Mode = QtWidgets.QComboBox(self)
-        self.Mode.addItems(['ephys', 'fft', 'time'])
-        glay.addWidget(QtWidgets.QLabel("Mode"), 0, 0)
-        glay.addWidget(self.Mode, 0, 1)
+        self.mode = QtWidgets.QComboBox(self)
+        self.mode.addItems(['ephys', 'fft', 'time'])
+        glay.addWidget(QtWidgets.QLabel("mode"), 0, 0)
+        glay.addWidget(self.mode, 0, 1)
 
-        self.BinSize = QtWidgets.QSpinBox()
-        self.BinSize.setRange(1, 20)
-        self.BinSize.setValue(1)
+        self.bin_size = QtWidgets.QSpinBox()
+        self.bin_size.setRange(1, 20)
+        self.bin_size.setValue(1)
         glay.addWidget(QtWidgets.QLabel("Bin Size"), 1, 0)
-        glay.addWidget(self.BinSize, 1, 1)
+        glay.addWidget(self.bin_size, 1, 1)
 
-        self.Win0 = QtWidgets.QSpinBox()
-        self.Win0.setRange(-400, -50)
-        self.Win0.setValue(-150)
-        glay.addWidget(QtWidgets.QLabel("Win0"), 2, 0)
-        glay.addWidget(self.Win0, 2, 1)
+        self.win_0 = QtWidgets.QSpinBox()
+        self.win_0.setRange(-400, -50)
+        self.win_0.setValue(-150)
+        glay.addWidget(QtWidgets.QLabel("win_0"), 2, 0)
+        glay.addWidget(self.win_0, 2, 1)
 
-        self.Win1 = QtWidgets.QSpinBox()
-        self.Win1.setRange(400, 50)
-        self.Win1.setValue(150)
-        glay.addWidget(QtWidgets.QLabel("Win1"), 3, 0)
-        glay.addWidget(self.Win1, 3, 1)
+        self.win_1 = QtWidgets.QSpinBox()
+        self.win_1.setRange(400, 50)
+        self.win_1.setValue(150)
+        glay.addWidget(QtWidgets.QLabel("win_1"), 3, 0)
+        glay.addWidget(self.win_1, 3, 1)

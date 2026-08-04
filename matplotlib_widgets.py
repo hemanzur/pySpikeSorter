@@ -3,6 +3,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavToolbar
 from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
 from PyQt5 import QtGui
 
 
@@ -13,7 +14,8 @@ class MplWidget(FigCanvas):
         self.fig.set_facecolor('w')
 
         FigCanvas.__init__(self, self.fig)
-        if parent: self.setParent(parent)
+        if parent:
+            self.setParent(parent)
 
         # self.setSizePolicy(QtGui.QSizePolicy.Expanding,
         #                    QtGui.QSizePolicy.Expanding)
@@ -40,24 +42,27 @@ class MyLasso(Widget):
         self.cids.append(self.canvas.mpl_connect('motion_notify_event', self.onmove))
 
     def onrelease(self, event):
-        if event.button!=1: return
+        if event.button != 1:
+            return
         if self.verts is not None:
             self.verts.append((event.xdata, event.ydata))
             if len(self.verts) > 2:
                 self.callback(self.verts)
-            if self.line in self.axes.lines:
-                self.axes.lines.remove(self.line)
+            self.line.remove()
         self.verts = None
         for cid in self.cids:
             self.canvas.mpl_disconnect(cid)
 
     def onmove(self, event):
-        if self.verts is None: return
-        if event.inaxes != self.axes: return
-        if event.button!=1: return
+        if self.verts is None:
+            return
+        if event.in_axes != self.axes:
+            return
+        if event.button != 1:
+            return
         self.verts.append((event.xdata, event.ydata))
 
-        self.line.set_data(zip(*self.verts))
+        self.line.set_data(*zip(*self.verts))
 
         if self.useblit:
             self.canvas.restore_region(self.background)
@@ -185,9 +190,9 @@ class MyRectangleSelector:
         self.minspany = minspany
 
         if button is None or isinstance(button, list):
-            self.validButtons = button
+            self.valid_buttons = button
         elif isinstance(button, int):
-            self.validButtons = [button]
+            self.valid_buttons = [button]
 
         assert(spancoords in ('data', 'pixels'))
 
@@ -216,18 +221,18 @@ class MyRectangleSelector:
 
         # Only do rectangle selection if event was triggered
         # with a desired button
-        if self.validButtons is not None:
-            if not event.button in self.validButtons:
+        if self.valid_buttons is not None:
+            if not event.button in self.valid_buttons:
                 return True
 
         # If no button was pressed yet ignore the event if it was out
         # of the axes
         if self.eventpress == None:
-            return event.inaxes!= self.ax
+            return event.in_axes!= self.ax
 
         # If a button was pressed, check if the release-button is the
         # same.
-        return  (event.inaxes!=self.ax or
+        return  (event.in_axes!=self.ax or
                  event.button != self.eventpress.button)
 
     def press(self, event):
@@ -277,7 +282,7 @@ class MyRectangleSelector:
             """Box to small"""     # check if drawn distance (if it exists) is
             return                 # not too small in neither x nor y-direction
         if (self.drawtype=='line') and (xproblems and yproblems):
-            """Line to small"""    # check if drawn distance (if it exists) is
+            """Line too small"""    # check if drawn distance (if it exists) is
             return                 # not too small in neither x nor y-direction
         self.onselect(self.eventpress, self.eventrelease)
                                               # call desired function

@@ -1,0 +1,8 @@
+numpy
+scipy
+matplotlib
+PyQt5
+pyqtgraph
+PyOpenGL
+tables
+scikit-learn

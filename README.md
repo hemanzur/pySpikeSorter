@@ -9,31 +9,25 @@
 ## Installation Instructions:  
 
 ### Requirements:
-* Numpy
-* Scipy
+* Python 3
+* NumPy
+* SciPy
 * Matplotlib
-* PyQt4
-* pyopengl
-* guidata
+* PyQt5
+* PyOpenGL
 * pyqtgraph
-* pytables
+* PyTables
+* scikit-learn
 * optional: Klustakwik
 
-To meet all the requirements is important to have a working python installation.
-
-In Debian based linux distributions i.e. **ubuntu** you can do:
+To meet all the requirements, create a virtual environment and install the
+Python dependencies:
 
 ```
-sudo apt-get install python-numpy python-scipy python-tables python-guidata python-matplotlib
-sudo apt-get install python-opengl python-qt4-gl
-sudo pip install pyqtgraph
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
-
-In **Windows** it is recomemnded to install a python bundle, for example [PythonXY](https://code.google.com/p/pythonxy/).
-
-Under **MacOS** it is recommended to install the [Enthought](https://www.enthought.com/products/canopy/) package, which bundles most of the requirements.
-If you do not want to install enthought, there are guides that can be used to succesfully install python in MAC: [link1](http://powernap.github.io/blog/2012/08/20/install-python-together-with-vtk-using-homebrew-for-mountain-lion/)
-, [link2](http://docs.python-guide.org/en/latest/starting/install/osx/)
 
 ### Running pySpikeSorter:
 
@@ -41,11 +35,11 @@ There is no installation needed. Just download the files to a known location, an
 
 ```
 cd /folder/that/contains/the/files
-ipython -i pySpikeSorter.py
+python pySpikeSorter.py
 ```
 
 #### Notes:
-* It is not required to use ipython, but is more convenient if one wants to explore and intereact with the Spyke Sorter object.  
+* It is not required to use IPython, but it can still be convenient if one wants to explore and interact with the Spike Sorter object.
 
 
 ## Tutorial:
